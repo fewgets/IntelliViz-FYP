@@ -3,8 +3,9 @@
 import { machines } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import type { MachineStatus } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,7 @@ const statusConfig: Record<
 };
 
 export default function MachinesPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialSearchQuery = searchParams.get("q")?.trim() ?? "";
   const statusFromQuery = searchParams.get("status");
@@ -114,13 +116,18 @@ export default function MachinesPage() {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between"
       >
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Machine Management
-          </h1>
-          <p className="text-muted-foreground">
-            Monitor and manage all industrial equipment
-          </p>
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="icon" onClick={() => router.push('/overview')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              Machine Management
+            </h1>
+            <p className="text-muted-foreground">
+              Monitor and manage all industrial equipment
+            </p>
+          </div>
         </div>
         <Button asChild>
           <Link href="/machines/add">Add New Machine</Link>

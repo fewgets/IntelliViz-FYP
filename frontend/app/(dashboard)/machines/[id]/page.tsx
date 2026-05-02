@@ -161,6 +161,34 @@ export default function MachineDetailPage() {
   const [recommendationGeneratedAt, setRecommendationGeneratedAt] = useState<string | null>(null);
   const [isRecommendationLoading, setIsRecommendationLoading] = useState(false);
   const [maintenanceLogs, setMaintenanceLogs] = useState<MaintenanceLogItem[]>([]);
+  const [liveSensors, setLiveSensors] = useState<MachineSensor[]>(machine?.sensors ?? []);
+
+  // Simulate real-time sensor data streaming
+  useEffect(() => {
+    if (!machine) return;
+
+    const interval = setInterval(() => {
+      setLiveSensors(current => current.map(sensor => {
+        const baseSensor = machine.sensors.find(s => s.id === sensor.id);
+        if (!baseSensor) return sensor;
+
+        // Fluctuate randomly within +/- 3% of the base value
+        const variance = baseSensor.value * 0.03;
+        const fluctuation = (Math.random() * 2 - 1) * variance;
+        let newValue = baseSensor.value + fluctuation;
+
+        // Format to 1 decimal place, or 0 for RPM/Power
+        const decimals = (sensor.type === 'rpm' || sensor.type === 'power') ? 0 : 1;
+
+        return {
+          ...sensor,
+          value: Number(newValue.toFixed(decimals))
+        };
+      }));
+    }, 2000); // Updates every 2 seconds
+
+    return () => clearInterval(interval);
+  }, [machine]);
 
   if (!machine) {
     return (
@@ -171,7 +199,7 @@ export default function MachineDetailPage() {
   }
 
   const config = statusConfig[machineStatus];
-  const visibleSensors = machine.sensors.filter((sensor) => selectedSensorIds.includes(sensor.id));
+  const visibleSensors = liveSensors.filter((sensor) => selectedSensorIds.includes(sensor.id));
   const hasVisibleSensors = visibleSensors.length > 0;
   const machineAiResults = useMemo(
     () =>
@@ -185,26 +213,26 @@ export default function MachineDetailPage() {
           sensor.type === "temperature"
             ? "Thermal runaway risk"
             : sensor.type === "vibration"
-            ? "Bearing wear / imbalance risk"
-            : sensor.type === "power"
-            ? "Electrical load instability"
-            : sensor.type === "pressure"
-            ? "Pressure system fault trend"
-            : "Rotational drift trend";
+              ? "Bearing wear / imbalance risk"
+              : sensor.type === "power"
+                ? "Electrical load instability"
+                : sensor.type === "pressure"
+                  ? "Pressure system fault trend"
+                  : "Rotational drift trend";
 
         const rootCause =
           sensor.value >= sensor.threshold.critical
             ? `${sensor.name} exceeded critical threshold.`
             : sensor.value >= sensor.threshold.warning
-            ? `${sensor.name} is trending above warning threshold.`
-            : `${sensor.name} is stable but monitored for drift.`;
+              ? `${sensor.name} is trending above warning threshold.`
+              : `${sensor.name} is stable but monitored for drift.`;
 
         const aiRecommendation =
           sensor.value >= sensor.threshold.critical
             ? "Run immediate inspection and lower machine load until stabilized."
             : sensor.value >= sensor.threshold.warning
-            ? "Schedule targeted diagnostics in the next maintenance window."
-            : "Continue monitoring and keep current preventive schedule.";
+              ? "Schedule targeted diagnostics in the next maintenance window."
+              : "Continue monitoring and keep current preventive schedule.";
 
         const aiResult: AIResultPayload = {
           predictionType,
@@ -314,10 +342,12 @@ export default function MachineDetailPage() {
     }
   };
 
-  const sensorAlerts = visibleSensors.flatMap((sensor) => {
+  type SensorAlert = { level: "critical" | "warning"; title: string; message: string };
+
+  const sensorAlerts: SensorAlert[] = visibleSensors.flatMap((sensor): SensorAlert[] => {
     if (sensor.value >= sensor.threshold.critical) {
       return [{
-        level: "critical" as const,
+        level: "critical",
         title: `${sensor.name} is critical`,
         message: `Current reading is ${sensor.value} ${sensor.unit}, which is above the critical limit of ${sensor.threshold.critical} ${sensor.unit}.`,
       }];
@@ -325,7 +355,7 @@ export default function MachineDetailPage() {
 
     if (sensor.value >= sensor.threshold.warning) {
       return [{
-        level: "warning" as const,
+        level: "warning",
         title: `${sensor.name} needs attention`,
         message: `Current reading is ${sensor.value} ${sensor.unit}, above the warning limit of ${sensor.threshold.warning} ${sensor.unit}.`,
       }];
@@ -687,7 +717,7 @@ export default function MachineDetailPage() {
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {machine.sensors.map((sensor) => {
+                    {liveSensors.map((sensor) => {
                       const Icon = sensorIcons[sensor.type] || Activity;
                       const selected = selectedSensorIds.includes(sensor.id);
                       return (
@@ -784,8 +814,8 @@ export default function MachineDetailPage() {
                   machine.efficiency >= 90
                     ? "text-success"
                     : machine.efficiency >= 70
-                    ? "text-warning"
-                    : "text-critical"
+                      ? "text-warning"
+                      : "text-critical"
                 )}
               >
                 {machine.efficiency}%
@@ -1003,85 +1033,152 @@ export default function MachineDetailPage() {
 
 function SensorCard({ sensor }: { sensor: MachineSensor }) {
   const Icon = sensorIcons[sensor.type] || Activity;
-  const percentage = ((sensor.value - sensor.min) / (sensor.max - sensor.min)) * 100;
   const isWarning = sensor.value >= sensor.threshold.warning;
   const isCritical = sensor.value >= sensor.threshold.critical;
 
+  // Take last 10 readings for the input sequence graph
+  const chartData = sensor.history.slice(-10).map((d, i) => ({
+    seq: i + 1,
+    value: d.value,
+    timestamp: d.timestamp,
+  }));
+
+  const statusColor = isCritical
+    ? "text-critical"
+    : isWarning
+      ? "text-warning"
+      : "text-primary";
+
+  const statusBg = isCritical
+    ? "bg-critical/10"
+    : isWarning
+      ? "bg-warning/10"
+      : "bg-primary/10";
+
+  const lineColor = isCritical
+    ? "oklch(0.6 0.25 27)"
+    : isWarning
+      ? "oklch(0.8 0.18 85)"
+      : "oklch(0.75 0.18 195)";
+
+  // Trend detection
+  const values = chartData.map(d => d.value);
+  const trendDelta = values.length >= 2 ? values[values.length - 1] - values[0] : 0;
+  const range = (sensor.max - sensor.min) || 1;
+  const trendLabel =
+    Math.abs(trendDelta) < range * 0.02 ? "Stable" : trendDelta > 0 ? "Rising" : "Falling";
+
+  const gradientId = `sensor-grad-${sensor.id}`;
+
   return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between">
+    <Card className="overflow-hidden">
+      <CardContent className="p-4 space-y-3">
+        {/* Header: Icon + Current Value + Status */}
+        <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-3">
-            <div
-              className={cn(
-                "flex h-10 w-10 items-center justify-center rounded-lg",
-                isCritical
-                  ? "bg-critical/10"
-                  : isWarning
-                  ? "bg-warning/10"
-                  : "bg-primary/10"
-              )}
-            >
-              <Icon
-                className={cn(
-                  "h-5 w-5",
-                  isCritical
-                    ? "text-critical"
-                    : isWarning
-                    ? "text-warning"
-                    : "text-primary"
-                )}
-              />
+            <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg", statusBg)}>
+              <Icon className={cn("h-5 w-5", statusColor)} />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">{sensor.name}</p>
-              <p
-                className={cn(
-                  "text-2xl font-bold",
-                  isCritical
-                    ? "text-critical"
-                    : isWarning
-                    ? "text-warning"
-                    : "text-foreground"
-                )}
-              >
-                {sensor.value} {sensor.unit}
+              <p className="text-sm font-medium text-muted-foreground">{sensor.name}</p>
+              <p className={cn("text-2xl font-bold tabular-nums", isCritical ? "text-critical" : isWarning ? "text-warning" : "text-foreground")}>
+                {sensor.value}
+                <span className="ml-1 text-sm font-medium text-muted-foreground">{sensor.unit}</span>
               </p>
             </div>
           </div>
-          <div className="text-right text-xs text-muted-foreground">
-            <p>
-              Range: {sensor.min} - {sensor.max} {sensor.unit}
-            </p>
-            <p className="text-warning">
-              Warning: {sensor.threshold.warning} {sensor.unit}
-            </p>
-            <p className="text-critical">
-              Critical: {sensor.threshold.critical} {sensor.unit}
-            </p>
+          <div className="flex flex-col items-end gap-1">
+            <Badge
+              variant="outline"
+              className={cn(
+                "text-[10px] font-semibold",
+                trendLabel === "Rising"
+                  ? "border-critical/30 text-critical"
+                  : trendLabel === "Falling"
+                    ? "border-success/30 text-success"
+                    : "border-primary/30 text-primary"
+              )}
+            >
+              {trendLabel === "Rising" ? "▲" : trendLabel === "Falling" ? "▼" : "—"} {trendLabel}
+            </Badge>
+            <span className="text-[10px] text-muted-foreground">Last {chartData.length} readings</span>
           </div>
         </div>
-        <div className="mt-4">
-          <div className="relative h-2 overflow-hidden rounded-full bg-muted">
-            <div
-              className={cn(
-                "absolute h-full rounded-full transition-all",
-                isCritical ? "bg-critical" : isWarning ? "bg-warning" : "bg-primary"
-              )}
-              style={{ width: `${Math.min(percentage, 100)}%` }}
-            />
-            <div
-              className="absolute top-0 h-full w-0.5 bg-warning"
-              style={{
-                left: `${((sensor.threshold.warning - sensor.min) / (sensor.max - sensor.min)) * 100}%`,
-              }}
-            />
-            <div
-              className="absolute top-0 h-full w-0.5 bg-critical"
-              style={{
-                left: `${((sensor.threshold.critical - sensor.min) / (sensor.max - sensor.min)) * 100}%`,
-              }}
-            />
+
+        {/* Chart: 10 input sequence */}
+        <div className="h-[160px] -mx-1">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData} margin={{ top: 8, right: 12, left: -8, bottom: 4 }}>
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={lineColor} stopOpacity={0.25} />
+                  <stop offset="95%" stopColor={lineColor} stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
+              <XAxis
+                dataKey="seq"
+                tick={{ fill: "currentColor", fontSize: 10 }}
+                tickLine={false}
+                axisLine={false}
+                label={{ value: "Input Sequence", position: "insideBottom", offset: -2, fontSize: 9, fill: "currentColor", opacity: 0.5 }}
+              />
+              <YAxis
+                domain={[sensor.min, sensor.max]}
+                tick={{ fill: "currentColor", fontSize: 10 }}
+                tickLine={false}
+                axisLine={false}
+                width={40}
+              />
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (!active || !payload?.length) return null;
+                  const d = payload[0].payload;
+                  return (
+                    <div className="rounded-lg border border-border bg-card p-2.5 shadow-lg text-xs">
+                      <p className="text-muted-foreground">Reading #{d.seq}</p>
+                      <p className="mt-0.5 text-sm font-semibold">
+                        {d.value} {sensor.unit}
+                      </p>
+                    </div>
+                  );
+                }}
+              />
+              {/* Warning threshold dashed line */}
+              <ReferenceLine
+                y={sensor.threshold.warning}
+                stroke="oklch(0.8 0.18 85)"
+                strokeDasharray="6 3"
+                strokeWidth={1.2}
+                label={{ value: `Warn ${sensor.threshold.warning}`, position: "right", fontSize: 9, fill: "oklch(0.8 0.18 85)" }}
+              />
+              {/* Critical threshold dashed line */}
+              <ReferenceLine
+                y={sensor.threshold.critical}
+                stroke="oklch(0.6 0.25 27)"
+                strokeDasharray="6 3"
+                strokeWidth={1.2}
+                label={{ value: `Crit ${sensor.threshold.critical}`, position: "right", fontSize: 9, fill: "oklch(0.6 0.25 27)" }}
+              />
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke={lineColor}
+                strokeWidth={2.5}
+                fill={`url(#${gradientId})`}
+                dot={{ r: 4, fill: "var(--background)", stroke: lineColor, strokeWidth: 2 }}
+                activeDot={{ r: 6, fill: lineColor, stroke: "var(--background)", strokeWidth: 2 }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Footer: range + thresholds */}
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/50 pt-2">
+          <span>Range: {sensor.min} – {sensor.max} {sensor.unit}</span>
+          <div className="flex gap-3">
+            <span className="text-warning">⚠ {sensor.threshold.warning}</span>
+            <span className="text-critical">✕ {sensor.threshold.critical}</span>
           </div>
         </div>
       </CardContent>
@@ -1097,12 +1194,12 @@ function SensorHistoryChart({ sensor }: { sensor: MachineSensor }) {
       setData((prev) => {
         if (!prev.length) return prev;
         const last = prev[prev.length - 1];
-        const nextTime = new Date(new Date(last.timestamp).getTime() + 60 * 60 * 1000); // simulate hourly step for the chart size
+        const nextTime = new Date(new Date(last.timestamp).getTime() + 60 * 60 * 1000);
         const variance = (sensor.max - sensor.min) * 0.02;
         const nextValue = Math.max(sensor.min, Math.min(sensor.max, last.value + (Math.random() - 0.5) * variance));
         return [...prev.slice(1), { timestamp: nextTime.toISOString(), value: Number(nextValue.toFixed(1)) }];
       });
-    }, 1500); // update every 1.5s for live effect
+    }, 1500);
     return () => clearInterval(interval);
   }, [sensor]);
 
@@ -1188,6 +1285,10 @@ function SensorHistoryChart({ sensor }: { sensor: MachineSensor }) {
     </Card>
   );
 }
+
+
+
+
 
 function PredictionCard({
   title,

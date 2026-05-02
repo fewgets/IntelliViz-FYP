@@ -188,7 +188,7 @@ export default function EnergyPage() {
       .slice(0, 5);
   }, []);
 
-  const potentialSavings = (estimatedDailyCost * 0.15).toFixed(2); // Assuming 15% optimization potential
+  const potentialSavings = (Number(estimatedDailyCost) * 0.15).toFixed(2); // Assuming 15% optimization potential
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();

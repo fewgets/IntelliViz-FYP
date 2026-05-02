@@ -37,6 +37,7 @@ interface FormState {
     predictive: boolean;
     energy: boolean;
     vibration: boolean;
+    cybersecurity: boolean;
   };
   thresholds: {
     temperature: string;
@@ -63,6 +64,7 @@ const defaultFormState: FormState = {
     predictive: true,
     energy: true,
     vibration: true,
+    cybersecurity: true,
   },
   thresholds: {
     temperature: "85",

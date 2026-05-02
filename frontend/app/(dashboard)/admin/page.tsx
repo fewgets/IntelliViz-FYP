@@ -55,7 +55,7 @@ export default function AdminPage() {
     searchParams.get("tab") === "api"
       ? searchParams.get("tab")
       : "alerts";
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const [activeTab, setActiveTab] = useState<string>(initialTab || "alerts");
   const [selectedMachine, setSelectedMachine] = useState(machines[0].id);
   const [thresholds, setThresholds] = useState({
     temperature: { warning: 75, critical: 90 },
@@ -73,7 +73,7 @@ export default function AdminPage() {
   const { setTheme } = useTheme();
 
   useEffect(() => {
-    setActiveTab(initialTab);
+    setActiveTab(initialTab || "alerts");
   }, [initialTab]);
 
   useEffect(() => {

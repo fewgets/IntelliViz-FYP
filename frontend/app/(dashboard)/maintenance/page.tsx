@@ -46,10 +46,10 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "next/link";
+import Link from "next/link";
 import { Calendar as BigCalendar, dateFnsLocalizer, Views, type View } from "react-big-calendar";
 import { addHours, format, getDay, parse, startOfWeek } from "date-fns";
-import enUS from "date-fns/locale/en-US";
+import { enUS } from "date-fns/locale/en-US";
 import {
   createMaintenanceEntry,
   formatMaintenanceDate,
@@ -543,10 +543,10 @@ export default function MaintenancePage() {
 
         {/* 2. KPI Cards */}
         <div className="grid flex-shrink-0 gap-3 grid-cols-2 lg:grid-cols-4 h-24">
-          <MaintenanceSnapshotCard title="Total Machines" value={24} icon={Activity} tone="success" />
-          <MaintenanceSnapshotCard title="Healthy Machines" value={21} icon={CheckCircle2} tone="success" />
-          <MaintenanceSnapshotCard title="At-Risk Machines" value={1} icon={AlertTriangle} tone="warning" />
-          <MaintenanceSnapshotCard title="Critical Alerts" value={2} icon={XCircle} tone="critical" />
+          <MaintenanceSnapshotCard title="Total Machines" value={machines.length} icon={Activity} tone="success" />
+          <MaintenanceSnapshotCard title="Healthy Machines" value={machines.filter(m => m.status === "operational").length} icon={CheckCircle2} tone="success" />
+          <MaintenanceSnapshotCard title="At-Risk Machines" value={machines.filter(m => m.status === "warning").length} icon={AlertTriangle} tone="warning" />
+          <MaintenanceSnapshotCard title="Critical Alerts" value={machines.filter(m => m.status === "critical" || m.status === "offline").length} icon={XCircle} tone="critical" />
         </div>
 
         {/* 3. Main Insight Area */}
@@ -858,11 +858,11 @@ export default function MaintenancePage() {
                   date={calendarDate}
                   view={calendarView}
                   views={[Views.MONTH, Views.WEEK]}
-                  onNavigate={(nextDate) => {
+                  onNavigate={(nextDate: Date) => {
                     setCalendarDate(nextDate);
                     setSelectedCalendarDate(nextDate);
                   }}
-                  onView={(nextView) => setCalendarView(nextView)}
+                  onView={(nextView: View) => setCalendarView(nextView)}
                   selectable
                   onSelectSlot={handleCalendarSelectSlot}
                   onSelectEvent={handleCalendarSelectEvent}
@@ -875,9 +875,9 @@ export default function MaintenancePage() {
                     event: CalendarEventBlock,
                   }}
                   formats={{
-                    monthHeaderFormat: (date) => format(date, "MMMM yyyy"),
-                    dayFormat: (date) => format(date, "EEE d"),
-                    weekdayFormat: (date) => format(date, "EEE"),
+                    monthHeaderFormat: (date: Date) => format(date, "MMMM yyyy"),
+                    dayFormat: (date: Date) => format(date, "EEE d"),
+                    weekdayFormat: (date: Date) => format(date, "EEE"),
                   }}
                 />
               </section>

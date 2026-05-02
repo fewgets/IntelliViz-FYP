@@ -1,13 +1,13 @@
-import type { 
-  Machine, 
+import type {
+  Machine,
   MachineStatus,
-  Alert, 
-  DashboardSummary, 
-  AnomalyData, 
-  EnergyData, 
+  Alert,
+  DashboardSummary,
+  AnomalyData,
+  EnergyData,
   ProductionKPI,
   SecurityAlert,
-  NetworkActivity 
+  NetworkActivity
 } from '@/types';
 
 const DATASET_BASE_TIME = new Date('2026-04-14T12:00:00Z');
@@ -52,302 +52,182 @@ function generateTimeSeriesData(hours: number, baseValue: number, variance: numb
 
 // Dashboard Summary
 export const dashboardSummary: DashboardSummary = {
-  totalMachines: 24,
-  activeMachines: 21,
+  totalMachines: 20,
+  activeMachines: 18,
   faultyMachines: 2,
   productionEfficiency: 87.5,
   energyConsumption: 1245.8,
-  systemHealth: 92,
+  systemHealth: 88,
 };
 
-// Machines
-const coreMachines: Machine[] = [
-  {
-    id: 'MCH-001',
-    name: 'CNC Mill Alpha',
-    type: 'CNC Machine',
-    location: 'Building A - Floor 1',
-    status: 'operational',
-    lastMaintenance: '2026-03-15',
-    nextMaintenance: '2026-04-15',
-    efficiency: 94,
-    uptime: 98.5,
-    sensors: [
-      {
-        id: 'SEN-001',
-        name: 'Spindle Temperature',
-        type: 'temperature',
-        value: 62,
-        unit: '°C',
-        min: 20,
-        max: 100,
-        threshold: { warning: 75, critical: 90 },
-        history: generateTimeSeriesData(24, 60, 10),
-      },
-      {
-        id: 'SEN-002',
-        name: 'Vibration Level',
-        type: 'vibration',
-        value: 2.4,
-        unit: 'mm/s',
-        min: 0,
-        max: 10,
-        threshold: { warning: 5, critical: 8 },
-        history: generateTimeSeriesData(24, 2.5, 1),
-      },
-      {
-        id: 'SEN-003',
-        name: 'Power Draw',
-        type: 'power',
-        value: 45,
-        unit: 'kW',
-        min: 0,
-        max: 100,
-        threshold: { warning: 80, critical: 95 },
-        history: generateTimeSeriesData(24, 45, 15),
-      },
-    ],
-  },
-  {
-    id: 'MCH-002',
-    name: 'Water Pump Beta',
-    type: 'Pump',
-    location: 'Building A - Floor 1',
-    status: 'warning',
-    lastMaintenance: '2026-02-28',
-    nextMaintenance: '2026-04-01',
-    efficiency: 78,
-    uptime: 89.2,
-    sensors: [
-      {
-        id: 'SEN-004',
-        name: 'Hydraulic Pressure',
-        type: 'pressure',
-        value: 185,
-        unit: 'bar',
-        min: 0,
-        max: 250,
-        threshold: { warning: 200, critical: 230 },
-        history: generateTimeSeriesData(24, 180, 20),
-      },
-      {
-        id: 'SEN-005',
-        name: 'Oil Temperature',
-        type: 'temperature',
-        value: 78,
-        unit: '°C',
-        min: 20,
-        max: 120,
-        threshold: { warning: 85, critical: 100 },
-        history: generateTimeSeriesData(24, 75, 12),
-      },
-    ],
-  },
-  {
-    id: 'MCH-003',
-    name: 'Assembly Robot Gamma',
-    type: 'Robotic Arm',
-    location: 'Building B - Floor 2',
-    status: 'operational',
-    lastMaintenance: '2026-03-20',
-    nextMaintenance: '2026-05-20',
-    efficiency: 96,
-    uptime: 99.1,
-    sensors: [
-      {
-        id: 'SEN-006',
-        name: 'Joint Temperature',
-        type: 'temperature',
-        value: 45,
-        unit: '°C',
-        min: 15,
-        max: 80,
-        threshold: { warning: 60, critical: 75 },
-        history: generateTimeSeriesData(24, 44, 8),
-      },
-      {
-        id: 'SEN-007',
-        name: 'Motor RPM',
-        type: 'rpm',
-        value: 1450,
-        unit: 'RPM',
-        min: 0,
-        max: 3000,
-        threshold: { warning: 2500, critical: 2800 },
-        history: generateTimeSeriesData(24, 1450, 200),
-      },
-    ],
-  },
-  {
-    id: 'MCH-004',
-    name: 'Air Compressor Delta',
-    type: 'Compressor',
-    location: 'Building B - Floor 1',
-    status: 'critical',
-    lastMaintenance: '2026-01-10',
-    nextMaintenance: '2026-02-10',
-    efficiency: 45,
-    uptime: 72.3,
-    sensors: [
-      {
-        id: 'SEN-008',
-        name: 'Belt Temperature',
-        type: 'temperature',
-        value: 92,
-        unit: '°C',
-        min: 20,
-        max: 100,
-        threshold: { warning: 70, critical: 85 },
-        history: generateTimeSeriesData(24, 88, 8),
-      },
-      {
-        id: 'SEN-009',
-        name: 'Motor Vibration',
-        type: 'vibration',
-        value: 7.8,
-        unit: 'mm/s',
-        min: 0,
-        max: 10,
-        threshold: { warning: 5, critical: 7 },
-        history: generateTimeSeriesData(24, 7.2, 1.5),
-      },
-    ],
-  },
-  {
-    id: 'MCH-005',
-    name: 'CNC Lathe Epsilon',
-    type: 'CNC Machine',
-    location: 'Building C - Floor 1',
-    status: 'operational',
-    lastMaintenance: '2026-03-25',
-    nextMaintenance: '2026-05-25',
-    efficiency: 91,
-    uptime: 97.8,
-    sensors: [
-      {
-        id: 'SEN-010',
-        name: 'Barrel Temperature',
-        type: 'temperature',
-        value: 215,
-        unit: '°C',
-        min: 150,
-        max: 300,
-        threshold: { warning: 260, critical: 280 },
-        history: generateTimeSeriesData(24, 215, 15),
-      },
-      {
-        id: 'SEN-011',
-        name: 'Injection Pressure',
-        type: 'pressure',
-        value: 120,
-        unit: 'MPa',
-        min: 0,
-        max: 200,
-        threshold: { warning: 160, critical: 180 },
-        history: generateTimeSeriesData(24, 120, 20),
-      },
-    ],
-  },
-  {
-    id: 'MCH-006',
-    name: 'Coolant Pump Zeta',
-    type: 'Pump',
-    location: 'Building A - Floor 2',
-    status: 'operational',
-    lastMaintenance: '2026-04-01',
-    nextMaintenance: '2026-06-01',
-    efficiency: 89,
-    uptime: 95.6,
-    sensors: [
-      {
-        id: 'SEN-012',
-        name: 'Laser Power',
-        type: 'power',
-        value: 3.2,
-        unit: 'kW',
-        min: 0,
-        max: 5,
-        threshold: { warning: 4, critical: 4.5 },
-        history: generateTimeSeriesData(24, 3.2, 0.5),
-      },
-    ],
-  },
-];
+// Custom Machine Dataset based on provided data
+const machineDataSpec = [
+  // CNC
+  { id: '1', type: 'CNC Machine', name: 'CNC Alpha', status: 'operational', eff: 94 },
+  { id: '2', type: 'CNC Machine', name: 'CNC Beta', status: 'operational', eff: 96 },
+  { id: '3', type: 'CNC Machine', name: 'CNC Gamma', status: 'warning', eff: 78 },
+  { id: '4', type: 'CNC Machine', name: 'CNC Delta', status: 'critical', eff: 52 },
+  { id: '5', type: 'CNC Machine', name: 'CNC Epsilon', status: 'operational', eff: 92 },
+  // Pump
+  { id: '6', type: 'Pump', name: 'Pump Zeta', status: 'operational', eff: 95 },
+  { id: '7', type: 'Pump', name: 'Pump Eta', status: 'critical', eff: 48 },
+  { id: '8', type: 'Pump', name: 'Pump Theta', status: 'warning', eff: 82 },
+  { id: '9', type: 'Pump', name: 'Pump Iota', status: 'operational', eff: 91 },
+  { id: '10', type: 'Pump', name: 'Pump Kappa', status: 'critical', eff: 58 },
+  // Compressor
+  { id: '11', type: 'Compressor', name: 'Compressor Lambda', status: 'critical', eff: 42 },
+  { id: '12', type: 'Compressor', name: 'Compressor Mu', status: 'warning', eff: 76 },
+  { id: '13', type: 'Compressor', name: 'Compressor Nu', status: 'critical', eff: 55 },
+  { id: '14', type: 'Compressor', name: 'Compressor Xi', status: 'operational', eff: 93 },
+  { id: '15', type: 'Compressor', name: 'Compressor Omicron', status: 'warning', eff: 80 },
+  // Robotic Arm
+  { id: '16', type: 'Robotic Arm', name: 'Robotic Arm Pi', status: 'operational', eff: 94 },
+  { id: '17', type: 'Robotic Arm', name: 'Robotic Arm Rho', status: 'warning', eff: 74 },
+  { id: '18', type: 'Robotic Arm', name: 'Robotic Arm Sigma', status: 'operational', eff: 89 },
+  { id: '19', type: 'Robotic Arm', name: 'Robotic Arm Tau', status: 'critical', eff: 45 },
+  { id: '20', type: 'Robotic Arm', name: 'Robotic Arm Upsilon', status: 'critical', eff: 60 },
+] as const;
 
-const additionalMachineSeed: Array<{
-  name: string;
-  type: string;
-  location: string;
-  status: MachineStatus;
-  efficiency: number;
-  uptime: number;
-}> = [
-  { name: 'CNC Router Eta', type: 'CNC Machine', location: 'Building C - Floor 2', status: 'operational', efficiency: 88, uptime: 94.2 },
-  { name: 'CNC Mill Theta', type: 'CNC Machine', location: 'Building D - Floor 1', status: 'warning', efficiency: 76, uptime: 87.1 },
-  { name: 'CNC Lathe Iota', type: 'CNC Machine', location: 'Building D - Floor 2', status: 'operational', efficiency: 90, uptime: 96.4 },
-  { name: 'CNC Plasma Kappa', type: 'CNC Machine', location: 'Building A - Floor 3', status: 'critical', efficiency: 61, uptime: 79.5 },
-  { name: 'Centrifugal Pump Lambda', type: 'Pump', location: 'Building B - Floor 3', status: 'operational', efficiency: 93, uptime: 97.2 },
-  { name: 'Submersible Pump Mu', type: 'Pump', location: 'Utilities Block', status: 'warning', efficiency: 74, uptime: 85.9 },
-  { name: 'Diaphragm Pump Nu', type: 'Pump', location: 'Utilities Block', status: 'operational', efficiency: 87, uptime: 95.1 },
-  { name: 'Gear Pump Xi', type: 'Pump', location: 'Building E - Floor 1', status: 'operational', efficiency: 89, uptime: 93.6 },
-  { name: 'Welding Robot Omicron', type: 'Robotic Arm', location: 'Building C - Floor 1', status: 'offline', efficiency: 0, uptime: 0 },
-  { name: 'Palletizing Robot Pi', type: 'Robotic Arm', location: 'Warehouse Dock', status: 'operational', efficiency: 92, uptime: 98.1 },
-  { name: 'Air Compressor Rho', type: 'Compressor', location: 'Utilities Block', status: 'warning', efficiency: 71, uptime: 84.7 },
-  { name: 'Robotic Arm Sigma', type: 'Robotic Arm', location: 'Building F - Floor 1', status: 'operational', efficiency: 86, uptime: 92.3 },
-  { name: 'Pick-and-Place Tau', type: 'Robotic Arm', location: 'Building B - Floor 2', status: 'operational', efficiency: 95, uptime: 98.8 },
-  { name: 'Assembly Robot Upsilon', type: 'Robotic Arm', location: 'Building A - Floor 2', status: 'operational', efficiency: 91, uptime: 96.9 },
-  { name: 'Rotary Compressor Phi', type: 'Compressor', location: 'Building C - Floor 2', status: 'operational', efficiency: 91, uptime: 96.9 },
-  { name: 'Scroll Compressor Chi', type: 'Compressor', location: 'Utilities Block', status: 'operational', efficiency: 88, uptime: 94.5 },
-  { name: 'Reciprocating Psi', type: 'Compressor', location: 'Utilities Block', status: 'warning', efficiency: 77, uptime: 88.2 },
-  { name: 'Axial Compressor Omega', type: 'Compressor', location: 'Building E - Floor 2', status: 'operational', efficiency: 94, uptime: 97.8 },
-];
+export const machines: Machine[] = machineDataSpec.map((spec, index) => {
+  const machineId = `MCH-${spec.id.padStart(3, '0')}`;
+  const sensorStart = 1 + index * 2;
 
-const additionalMachines: Machine[] = additionalMachineSeed.map((seed, index) => {
-  const machineNumber = index + 7;
-  const machineId = `MCH-${String(machineNumber).padStart(3, '0')}`;
-  const sensorStart = 13 + index * 2;
-  const tempBase = 40 + (index % 7) * 5;
-  const powerBase = 30 + (index % 8) * 6;
-  const dayOffset = String(3 + (index % 20)).padStart(2, '0');
+  // Base configurations by machine type
+  let vibBase = 1.5, vibVar = 0.5, vibWarn = 5, vibCrit = 8, vibMax = 15;
+  let tempBase = 50, tempVar = 10, tempWarn = 80, tempCrit = 90, tempMax = 120;
+  let currBase = 10, currVar = 3, currWarn = 25, currCrit = 32, currMax = 40;
+  let pressBase = 60, pressVar = 10, pressWarn = 140, pressCrit = 180, pressMax = 220;
+  let rpmBase = 1200, rpmVar = 200, rpmWarn = 3000, rpmCrit = 3800, rpmMax = 4500;
+  let ambBase = 13.0, ambVar = 2, ambWarn = 18, ambCrit = 22, ambMax = 30;
+  let maintBase = 166;
+
+  if (spec.type === 'CNC Machine') {
+    vibBase = 2.05; vibWarn = 6.0; vibCrit = 8.5; vibMax = 12;
+    tempBase = 54.75; tempWarn = 80; tempCrit = 90; tempMax = 110;
+    currBase = 10.16; currWarn = 28; currCrit = 32; currMax = 40;
+    pressBase = 51.22; pressWarn = 110; pressCrit = 130; pressMax = 160;
+    rpmBase = 2046; rpmWarn = 3600; rpmCrit = 3900; rpmMax = 4500;
+  } else if (spec.type === 'Pump') {
+    vibBase = 1.51; vibWarn = 5.0; vibCrit = 6.0; vibMax = 10;
+    tempBase = 53.10; tempWarn = 80; tempCrit = 90; tempMax = 110;
+    currBase = 9.14; currWarn = 25; currCrit = 28; currMax = 35;
+    pressBase = 69.56; pressWarn = 140; pressCrit = 155; pressMax = 180;
+    rpmBase = 963; rpmWarn = 1600; rpmCrit = 1800; rpmMax = 2200;
+  } else if (spec.type === 'Compressor') {
+    vibBase = 2.03; vibWarn = 7.0; vibCrit = 9.0; vibMax = 12;
+    tempBase = 57.36; tempWarn = 82; tempCrit = 92; tempMax = 110;
+    currBase = 11.51; currWarn = 28; currCrit = 33; currMax = 40;
+    pressBase = 82.63; pressWarn = 180; pressCrit = 195; pressMax = 230;
+    rpmBase = 1313; rpmWarn = 2200; rpmCrit = 2400; rpmMax = 2800;
+  } else if (spec.type === 'Robotic Arm') {
+    vibBase = 0.91; vibWarn = 4.5; vibCrit = 5.8; vibMax = 8;
+    tempBase = 40.43; tempWarn = 75; tempCrit = 83; tempMax = 100;
+    currBase = 4.50; currWarn = 11; currCrit = 13; currMax = 18;
+    pressBase = 32.34; pressWarn = 65; pressCrit = 75; pressMax = 100;
+    rpmBase = 269; rpmWarn = 410; rpmCrit = 440; rpmMax = 500;
+  }
+
+  // Apply failure clues based on status
+  if (spec.status === 'warning' || spec.status === 'critical') {
+    const isCrit = spec.status === 'critical';
+    const failType = index % 4; // Distribute failure types
+
+    if (failType === 0) { // Bearing Failure
+      vibBase = isCrit ? vibCrit + 0.5 : 3.43;
+      tempBase = isCrit ? tempCrit + 2 : 61.70;
+    } else if (failType === 1) { // Hydraulic Failure
+      maintBase = isCrit ? 400 : 264;
+      vibBase = isCrit ? vibWarn + 1 : 2.02;
+      tempBase = isCrit ? tempWarn + 2 : 55.13;
+    } else if (failType === 2) { // Electrical Failure
+      currBase = isCrit ? currCrit + 1 : 14.11;
+      tempBase = isCrit ? tempWarn + 1 : 56.79;
+    } else { // Motor Overheat
+      tempBase = isCrit ? tempCrit + 3 : 73.62;
+      vibBase = isCrit ? vibWarn + 0.5 : 1.75;
+    }
+  }
 
   return {
     id: machineId,
-    name: seed.name,
-    type: seed.type,
-    location: seed.location,
-    status: seed.status,
-    lastMaintenance: `2026-03-${dayOffset}`,
-    nextMaintenance: `2026-05-${dayOffset}`,
-    efficiency: seed.efficiency,
-    uptime: seed.uptime,
+    name: spec.name,
+    type: spec.type,
+    location: `Building ${String.fromCharCode(65 + (index % 5))} - Floor ${(index % 3) + 1}`,
+    status: spec.status as MachineStatus,
+    lastMaintenance: `2026-03-${String((index % 28) + 1).padStart(2, '0')}`,
+    nextMaintenance: `2026-05-${String((index % 28) + 1).padStart(2, '0')}`,
+    efficiency: spec.eff,
+    uptime: maintBase,
     sensors: [
       {
         id: `SEN-${String(sensorStart).padStart(3, '0')}`,
-        name: 'Temperature',
-        type: 'temperature',
-        value: seed.status === 'offline' ? 0 : tempBase,
-        unit: '°C',
+        name: 'Vibration RMS',
+        type: 'vibration',
+        value: Number(vibBase.toFixed(2)),
+        unit: 'mm/s',
         min: 0,
-        max: 120,
-        threshold: { warning: 80, critical: 95 },
-        history: generateTimeSeriesData(24, seed.status === 'offline' ? 5 : tempBase, 10),
+        max: vibMax,
+        threshold: { warning: vibWarn, critical: vibCrit },
+        history: generateTimeSeriesData(10, vibBase, vibVar),
       },
       {
         id: `SEN-${String(sensorStart + 1).padStart(3, '0')}`,
-        name: 'Power Draw',
-        type: 'power',
-        value: seed.status === 'offline' ? 0 : powerBase,
-        unit: 'kW',
+        name: 'Motor Temp',
+        type: 'temperature',
+        value: Number(tempBase.toFixed(1)),
+        unit: '°C',
         min: 0,
-        max: 120,
-        threshold: { warning: 95, critical: 110 },
-        history: generateTimeSeriesData(24, seed.status === 'offline' ? 2 : powerBase, 14),
+        max: tempMax,
+        threshold: { warning: tempWarn, critical: tempCrit },
+        history: generateTimeSeriesData(10, tempBase, tempVar),
       },
+      {
+        id: `SEN-${String(sensorStart + 2).padStart(3, '0')}`,
+        name: 'Current Phase',
+        type: 'power',
+        value: Number(currBase.toFixed(1)),
+        unit: 'A',
+        min: 0,
+        max: currMax,
+        threshold: { warning: currWarn, critical: currCrit },
+        history: generateTimeSeriesData(10, currBase, currVar),
+      },
+      {
+        id: `SEN-${String(sensorStart + 3).padStart(3, '0')}`,
+        name: 'Pressure Level',
+        type: 'pressure',
+        value: Number(pressBase.toFixed(1)),
+        unit: 'bar',
+        min: 0,
+        max: pressMax,
+        threshold: { warning: pressWarn, critical: pressCrit },
+        history: generateTimeSeriesData(10, pressBase, pressVar),
+      },
+      {
+        id: `SEN-${String(sensorStart + 4).padStart(3, '0')}`,
+        name: 'Rotational Speed',
+        type: 'rpm',
+        value: Number(rpmBase.toFixed(0)),
+        unit: 'RPM',
+        min: 0,
+        max: rpmMax,
+        threshold: { warning: rpmWarn, critical: rpmCrit },
+        history: generateTimeSeriesData(10, rpmBase, rpmVar),
+      },
+      {
+        id: `SEN-${String(sensorStart + 5).padStart(3, '0')}`,
+        name: 'Ambient Temp',
+        type: 'temperature',
+        value: Number(ambBase.toFixed(1)),
+        unit: '°C',
+        min: 0,
+        max: ambMax,
+        threshold: { warning: ambWarn, critical: ambCrit },
+        history: generateTimeSeriesData(10, ambBase, ambVar),
+      }
     ],
   };
 });
-
-export const machines: Machine[] = [...coreMachines, ...additionalMachines];
 
 // Alerts
 export const alerts: Alert[] = [
@@ -588,7 +468,7 @@ export function generateAnomalyData(): AnomalyData[] {
     const value = baseValue + (random() - 0.5) * 8;
     const predicted = baseValue + (random() - 0.5) * 2;
     const isAnomaly = random() < 0.035 && i > 12;
-    
+
     data.push({
       timestamp: timestamp.toISOString(),
       value: isAnomaly ? value + (random() > 0.5 ? 25 : -20) : value,
@@ -596,7 +476,7 @@ export function generateAnomalyData(): AnomalyData[] {
       isAnomaly,
     });
   }
-  
+
   return data;
 }
 
@@ -605,13 +485,13 @@ export function generateEnergyData(): EnergyData[] {
   const data: EnergyData[] = [];
   const now = DATASET_BASE_TIME;
   const random = createRandom('energy-data');
-  
+
   for (let i = 24; i >= 0; i--) {
     const timestamp = new Date(now.getTime() - i * 60 * 60 * 1000);
     const hour = timestamp.getHours();
     const baseConsumption = hour >= 8 && hour <= 18 ? 1200 : 400;
     const consumption = baseConsumption + (random() - 0.5) * 200;
-    
+
     data.push({
       timestamp: timestamp.toISOString(),
       consumption: Math.round(consumption),
@@ -619,7 +499,7 @@ export function generateEnergyData(): EnergyData[] {
       average: Math.round(baseConsumption * 0.85),
     });
   }
-  
+
   return data;
 }
 
@@ -673,12 +553,12 @@ export function generateNetworkActivity(): NetworkActivity[] {
   const data: NetworkActivity[] = [];
   const now = DATASET_BASE_TIME;
   const random = createRandom('network-activity');
-  
+
   for (let i = 24; i >= 0; i--) {
     const timestamp = new Date(now.getTime() - i * 60 * 60 * 1000);
     const hour = timestamp.getHours();
     const baseTraffic = hour >= 8 && hour <= 18 ? 800 : 200;
-    
+
     data.push({
       timestamp: timestamp.toISOString(),
       inbound: Math.round(baseTraffic + (random() - 0.5) * 200),
@@ -686,6 +566,6 @@ export function generateNetworkActivity(): NetworkActivity[] {
       suspicious: Math.round(random() * 15),
     });
   }
-  
+
   return data;
 }

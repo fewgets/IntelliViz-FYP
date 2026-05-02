@@ -108,8 +108,8 @@ export default function Home() {
           <h1 className="hero-title">Intelligent Protection<br />for <span className="accent">Smart Industries</span><br />of Tomorrow</h1>
           <p className="hero-sub">IntelliViz monitors, predicts, and secures your industrial devices in real time — from CNC machines to robotic arms, all in one unified platform.</p>
           <div className="hero-btns">
-            <Link href="/dashboard" className="btn-solid">Open Dashboard</Link>
-            <Link href="/dashboard" className="btn-outline">View Live Demo</Link>
+            <Link href="/overview" className="btn-solid">Open Dashboard</Link>
+            <Link href="/overview" className="btn-outline">View Live Demo</Link>
           </div>
         </div>
       </section>
@@ -221,7 +221,7 @@ export default function Home() {
           </div>
           <div className="status-footer">
             <p>See the <strong>full analytics dashboard</strong> — live charts, anomaly trends, and machine health scores.</p>
-            <Link href="/dashboard" className="btn-open">Open Full Dashboard <span>→</span></Link>
+            <Link href="/overview" className="btn-open">Open Full Dashboard <span>→</span></Link>
           </div>
         </div>
       </section>
