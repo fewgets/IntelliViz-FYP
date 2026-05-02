@@ -10,15 +10,20 @@ export function WeeklyOverview() {
 
   const weekData = useMemo(() => {
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const today = new Date();
+    const today = new Date(2026, 3, 14); // Fixed date for mock data consistency
 
     return days.map((day, index) => {
       const dayDate = new Date(today);
       dayDate.setDate(today.getDate() - (6 - index));
 
-      const avgRuntime = 16 + Math.random() * 8;
-      const energyUsed = 1200 + Math.random() * 300;
-      const efficiency = 85 + Math.random() * 10;
+      // Deterministic pseudo-random values to prevent hydration mismatch
+      const fraction1 = Math.abs(Math.sin(index * 12.9898 + 1) * 43758.5453) % 1;
+      const fraction2 = Math.abs(Math.sin(index * 12.9898 + 2) * 43758.5453) % 1;
+      const fraction3 = Math.abs(Math.sin(index * 12.9898 + 3) * 43758.5453) % 1;
+
+      const avgRuntime = 16 + fraction1 * 8;
+      const energyUsed = 1200 + fraction2 * 300;
+      const efficiency = 85 + fraction3 * 10;
 
       return {
         day,
@@ -67,7 +72,7 @@ export function WeeklyOverview() {
                 <div className="text-muted-foreground">{day.date}</div>
                 <div className="font-medium text-info">{day.runtime}h</div>
                 <div className="font-medium text-warning">{day.energy} kWh</div>
-                <div className={cn("font-medium", day.efficiency > 88 ? "text-success" : "text-warning")}>
+                <div className={cn("font-medium", Number(day.efficiency) > 88 ? "text-success" : "text-warning")}>
                   {day.efficiency}%
                 </div>
               </div>

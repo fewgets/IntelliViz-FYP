@@ -175,7 +175,7 @@ export default function SystemHealthPage() {
           <div className="space-y-4">
             {systemComponents.map((comp, idx) => {
               const IconComponent = comp.icon;
-              const colorMap = {
+              const colorMap: Record<string, string> = {
                 success: "bg-success/10 text-success",
                 warning: "bg-warning/10 text-warning",
                 critical: "bg-critical/10 text-critical",
@@ -266,11 +266,11 @@ export default function SystemHealthPage() {
                     <td className="py-2 px-2">
                       <span
                         className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                          machine.status === "Running"
+                          machine.status === "operational"
                             ? "bg-success/10 text-success"
-                            : machine.status === "Warning"
+                            : machine.status === "warning"
                             ? "bg-warning/10 text-warning"
-                            : machine.status === "Offline"
+                            : machine.status === "critical" || machine.status === "offline"
                             ? "bg-critical/10 text-critical"
                             : "bg-muted/10 text-muted-foreground"
                         }`}

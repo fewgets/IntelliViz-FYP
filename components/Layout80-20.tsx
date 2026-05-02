@@ -19,8 +19,8 @@ export function Layout8020({
 
   return (
     <div className={`flex flex-col lg:flex-row ${minHeight} ${className}`}>
-      <div 
-        style={{ '--lg-width': leftWidth } as React.CSSProperties} 
+      <div
+        style={{ '--lg-width': leftWidth } as React.CSSProperties}
         className="w-full lg:w-[var(--lg-width)] overflow-visible lg:overflow-hidden"
       >
         {left}

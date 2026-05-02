@@ -342,10 +342,12 @@ export default function MachineDetailPage() {
     }
   };
 
-  const sensorAlerts = visibleSensors.flatMap((sensor) => {
+  type SensorAlert = { level: "critical" | "warning"; title: string; message: string };
+
+  const sensorAlerts: SensorAlert[] = visibleSensors.flatMap((sensor): SensorAlert[] => {
     if (sensor.value >= sensor.threshold.critical) {
       return [{
-        level: "critical" as const,
+        level: "critical",
         title: `${sensor.name} is critical`,
         message: `Current reading is ${sensor.value} ${sensor.unit}, which is above the critical limit of ${sensor.threshold.critical} ${sensor.unit}.`,
       }];
@@ -353,7 +355,7 @@ export default function MachineDetailPage() {
 
     if (sensor.value >= sensor.threshold.warning) {
       return [{
-        level: "warning" as const,
+        level: "warning",
         title: `${sensor.name} needs attention`,
         message: `Current reading is ${sensor.value} ${sensor.unit}, above the warning limit of ${sensor.threshold.warning} ${sensor.unit}.`,
       }];
@@ -1044,20 +1046,20 @@ function SensorCard({ sensor }: { sensor: MachineSensor }) {
   const statusColor = isCritical
     ? "text-critical"
     : isWarning
-    ? "text-warning"
-    : "text-primary";
+      ? "text-warning"
+      : "text-primary";
 
   const statusBg = isCritical
     ? "bg-critical/10"
     : isWarning
-    ? "bg-warning/10"
-    : "bg-primary/10";
+      ? "bg-warning/10"
+      : "bg-primary/10";
 
   const lineColor = isCritical
     ? "oklch(0.6 0.25 27)"
     : isWarning
-    ? "oklch(0.8 0.18 85)"
-    : "oklch(0.75 0.18 195)";
+      ? "oklch(0.8 0.18 85)"
+      : "oklch(0.75 0.18 195)";
 
   // Trend detection
   const values = chartData.map(d => d.value);
@@ -1093,8 +1095,8 @@ function SensorCard({ sensor }: { sensor: MachineSensor }) {
                 trendLabel === "Rising"
                   ? "border-critical/30 text-critical"
                   : trendLabel === "Falling"
-                  ? "border-success/30 text-success"
-                  : "border-primary/30 text-primary"
+                    ? "border-success/30 text-success"
+                    : "border-primary/30 text-primary"
               )}
             >
               {trendLabel === "Rising" ? "▲" : trendLabel === "Falling" ? "▼" : "—"} {trendLabel}

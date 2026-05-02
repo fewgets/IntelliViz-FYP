@@ -1,13 +1,13 @@
-import type { 
-  Machine, 
+import type {
+  Machine,
   MachineStatus,
-  Alert, 
-  DashboardSummary, 
-  AnomalyData, 
-  EnergyData, 
+  Alert,
+  DashboardSummary,
+  AnomalyData,
+  EnergyData,
   ProductionKPI,
   SecurityAlert,
-  NetworkActivity 
+  NetworkActivity
 } from '@/types';
 
 const DATASET_BASE_TIME = new Date('2026-04-14T12:00:00Z');
@@ -91,9 +91,63 @@ const machineDataSpec = [
 export const machines: Machine[] = machineDataSpec.map((spec, index) => {
   const machineId = `MCH-${spec.id.padStart(3, '0')}`;
   const sensorStart = 1 + index * 2;
-  const tempBase = spec.status === 'critical' ? 90 : spec.status === 'warning' ? 75 : 45;
-  const powerBase = 45;
-  
+
+  // Base configurations by machine type
+  let vibBase = 1.5, vibVar = 0.5, vibWarn = 5, vibCrit = 8, vibMax = 15;
+  let tempBase = 50, tempVar = 10, tempWarn = 80, tempCrit = 90, tempMax = 120;
+  let currBase = 10, currVar = 3, currWarn = 25, currCrit = 32, currMax = 40;
+  let pressBase = 60, pressVar = 10, pressWarn = 140, pressCrit = 180, pressMax = 220;
+  let rpmBase = 1200, rpmVar = 200, rpmWarn = 3000, rpmCrit = 3800, rpmMax = 4500;
+  let ambBase = 13.0, ambVar = 2, ambWarn = 18, ambCrit = 22, ambMax = 30;
+  let maintBase = 166;
+
+  if (spec.type === 'CNC Machine') {
+    vibBase = 2.05; vibWarn = 6.0; vibCrit = 8.5; vibMax = 12;
+    tempBase = 54.75; tempWarn = 80; tempCrit = 90; tempMax = 110;
+    currBase = 10.16; currWarn = 28; currCrit = 32; currMax = 40;
+    pressBase = 51.22; pressWarn = 110; pressCrit = 130; pressMax = 160;
+    rpmBase = 2046; rpmWarn = 3600; rpmCrit = 3900; rpmMax = 4500;
+  } else if (spec.type === 'Pump') {
+    vibBase = 1.51; vibWarn = 5.0; vibCrit = 6.0; vibMax = 10;
+    tempBase = 53.10; tempWarn = 80; tempCrit = 90; tempMax = 110;
+    currBase = 9.14; currWarn = 25; currCrit = 28; currMax = 35;
+    pressBase = 69.56; pressWarn = 140; pressCrit = 155; pressMax = 180;
+    rpmBase = 963; rpmWarn = 1600; rpmCrit = 1800; rpmMax = 2200;
+  } else if (spec.type === 'Compressor') {
+    vibBase = 2.03; vibWarn = 7.0; vibCrit = 9.0; vibMax = 12;
+    tempBase = 57.36; tempWarn = 82; tempCrit = 92; tempMax = 110;
+    currBase = 11.51; currWarn = 28; currCrit = 33; currMax = 40;
+    pressBase = 82.63; pressWarn = 180; pressCrit = 195; pressMax = 230;
+    rpmBase = 1313; rpmWarn = 2200; rpmCrit = 2400; rpmMax = 2800;
+  } else if (spec.type === 'Robotic Arm') {
+    vibBase = 0.91; vibWarn = 4.5; vibCrit = 5.8; vibMax = 8;
+    tempBase = 40.43; tempWarn = 75; tempCrit = 83; tempMax = 100;
+    currBase = 4.50; currWarn = 11; currCrit = 13; currMax = 18;
+    pressBase = 32.34; pressWarn = 65; pressCrit = 75; pressMax = 100;
+    rpmBase = 269; rpmWarn = 410; rpmCrit = 440; rpmMax = 500;
+  }
+
+  // Apply failure clues based on status
+  if (spec.status === 'warning' || spec.status === 'critical') {
+    const isCrit = spec.status === 'critical';
+    const failType = index % 4; // Distribute failure types
+
+    if (failType === 0) { // Bearing Failure
+      vibBase = isCrit ? vibCrit + 0.5 : 3.43;
+      tempBase = isCrit ? tempCrit + 2 : 61.70;
+    } else if (failType === 1) { // Hydraulic Failure
+      maintBase = isCrit ? 400 : 264;
+      vibBase = isCrit ? vibWarn + 1 : 2.02;
+      tempBase = isCrit ? tempWarn + 2 : 55.13;
+    } else if (failType === 2) { // Electrical Failure
+      currBase = isCrit ? currCrit + 1 : 14.11;
+      tempBase = isCrit ? tempWarn + 1 : 56.79;
+    } else { // Motor Overheat
+      tempBase = isCrit ? tempCrit + 3 : 73.62;
+      vibBase = isCrit ? vibWarn + 0.5 : 1.75;
+    }
+  }
+
   return {
     id: machineId,
     name: spec.name,
@@ -103,73 +157,73 @@ export const machines: Machine[] = machineDataSpec.map((spec, index) => {
     lastMaintenance: `2026-03-${String((index % 28) + 1).padStart(2, '0')}`,
     nextMaintenance: `2026-05-${String((index % 28) + 1).padStart(2, '0')}`,
     efficiency: spec.eff,
-    uptime: Math.round((spec.eff + (index % 5)) * 10) / 10,
+    uptime: maintBase,
     sensors: [
       {
         id: `SEN-${String(sensorStart).padStart(3, '0')}`,
-        name: 'Vibration Sensor',
+        name: 'Vibration RMS',
         type: 'vibration',
-        value: spec.status === 'critical' ? 8.5 : spec.status === 'warning' ? 5.2 : 2.1,
+        value: Number(vibBase.toFixed(2)),
         unit: 'mm/s',
         min: 0,
-        max: 15,
-        threshold: { warning: 5.0, critical: 8.0 },
-        history: generateTimeSeriesData(24, spec.status === 'critical' ? 8.0 : 2.0, 1.5),
+        max: vibMax,
+        threshold: { warning: vibWarn, critical: vibCrit },
+        history: generateTimeSeriesData(10, vibBase, vibVar),
       },
       {
         id: `SEN-${String(sensorStart + 1).padStart(3, '0')}`,
-        name: 'Motor Temperature Sensor',
+        name: 'Motor Temp',
         type: 'temperature',
-        value: tempBase,
+        value: Number(tempBase.toFixed(1)),
         unit: '°C',
         min: 0,
-        max: 150,
-        threshold: { warning: 80, critical: 95 },
-        history: generateTimeSeriesData(24, tempBase, 10),
+        max: tempMax,
+        threshold: { warning: tempWarn, critical: tempCrit },
+        history: generateTimeSeriesData(10, tempBase, tempVar),
       },
       {
         id: `SEN-${String(sensorStart + 2).padStart(3, '0')}`,
-        name: 'Current Sensor',
+        name: 'Current Phase',
         type: 'power',
-        value: spec.status === 'critical' ? 145 : spec.status === 'warning' ? 120 : 85,
+        value: Number(currBase.toFixed(1)),
         unit: 'A',
         min: 0,
-        max: 200,
-        threshold: { warning: 110, critical: 140 },
-        history: generateTimeSeriesData(24, 85, 15),
+        max: currMax,
+        threshold: { warning: currWarn, critical: currCrit },
+        history: generateTimeSeriesData(10, currBase, currVar),
       },
       {
         id: `SEN-${String(sensorStart + 3).padStart(3, '0')}`,
-        name: 'Pressure Sensor',
+        name: 'Pressure Level',
         type: 'pressure',
-        value: spec.status === 'critical' ? 190 : 120,
+        value: Number(pressBase.toFixed(1)),
         unit: 'bar',
         min: 0,
-        max: 250,
-        threshold: { warning: 160, critical: 180 },
-        history: generateTimeSeriesData(24, 120, 10),
+        max: pressMax,
+        threshold: { warning: pressWarn, critical: pressCrit },
+        history: generateTimeSeriesData(10, pressBase, pressVar),
       },
       {
         id: `SEN-${String(sensorStart + 4).padStart(3, '0')}`,
-        name: 'RPM Sensor',
+        name: 'Rotational Speed',
         type: 'rpm',
-        value: spec.status === 'critical' ? 800 : 1800,
+        value: Number(rpmBase.toFixed(0)),
         unit: 'RPM',
         min: 0,
-        max: 3500,
-        threshold: { warning: 2800, critical: 3200 },
-        history: generateTimeSeriesData(24, 1800, 200),
+        max: rpmMax,
+        threshold: { warning: rpmWarn, critical: rpmCrit },
+        history: generateTimeSeriesData(10, rpmBase, rpmVar),
       },
       {
         id: `SEN-${String(sensorStart + 5).padStart(3, '0')}`,
-        name: 'Ambient Temperature',
+        name: 'Ambient Temp',
         type: 'temperature',
-        value: 28,
+        value: Number(ambBase.toFixed(1)),
         unit: '°C',
-        min: -10,
-        max: 60,
-        threshold: { warning: 40, critical: 50 },
-        history: generateTimeSeriesData(24, 28, 5),
+        min: 0,
+        max: ambMax,
+        threshold: { warning: ambWarn, critical: ambCrit },
+        history: generateTimeSeriesData(10, ambBase, ambVar),
       }
     ],
   };
@@ -414,7 +468,7 @@ export function generateAnomalyData(): AnomalyData[] {
     const value = baseValue + (random() - 0.5) * 8;
     const predicted = baseValue + (random() - 0.5) * 2;
     const isAnomaly = random() < 0.035 && i > 12;
-    
+
     data.push({
       timestamp: timestamp.toISOString(),
       value: isAnomaly ? value + (random() > 0.5 ? 25 : -20) : value,
@@ -422,7 +476,7 @@ export function generateAnomalyData(): AnomalyData[] {
       isAnomaly,
     });
   }
-  
+
   return data;
 }
 
@@ -431,13 +485,13 @@ export function generateEnergyData(): EnergyData[] {
   const data: EnergyData[] = [];
   const now = DATASET_BASE_TIME;
   const random = createRandom('energy-data');
-  
+
   for (let i = 24; i >= 0; i--) {
     const timestamp = new Date(now.getTime() - i * 60 * 60 * 1000);
     const hour = timestamp.getHours();
     const baseConsumption = hour >= 8 && hour <= 18 ? 1200 : 400;
     const consumption = baseConsumption + (random() - 0.5) * 200;
-    
+
     data.push({
       timestamp: timestamp.toISOString(),
       consumption: Math.round(consumption),
@@ -445,7 +499,7 @@ export function generateEnergyData(): EnergyData[] {
       average: Math.round(baseConsumption * 0.85),
     });
   }
-  
+
   return data;
 }
 
@@ -499,12 +553,12 @@ export function generateNetworkActivity(): NetworkActivity[] {
   const data: NetworkActivity[] = [];
   const now = DATASET_BASE_TIME;
   const random = createRandom('network-activity');
-  
+
   for (let i = 24; i >= 0; i--) {
     const timestamp = new Date(now.getTime() - i * 60 * 60 * 1000);
     const hour = timestamp.getHours();
     const baseTraffic = hour >= 8 && hour <= 18 ? 800 : 200;
-    
+
     data.push({
       timestamp: timestamp.toISOString(),
       inbound: Math.round(baseTraffic + (random() - 0.5) * 200),
@@ -512,6 +566,6 @@ export function generateNetworkActivity(): NetworkActivity[] {
       suspicious: Math.round(random() * 15),
     });
   }
-  
+
   return data;
 }

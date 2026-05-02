@@ -166,7 +166,7 @@ export default function AlertDetailPage({ params }: { params: Promise<{ id: stri
   }, [stats]);
 
   const aiResult = useMemo<AIResultPayload | null>(() => {
-    if (!anomaly || !stats) return null;
+    if (!alert || !anomaly || !stats) return null;
 
     const riskScore = Math.min(
       100,
@@ -198,13 +198,13 @@ export default function AlertDetailPage({ params }: { params: Promise<{ id: stri
       timeZone: "UTC",
     }).format(new Date(value));
 
-  const alertBaseTime = new Date(alert.timestamp).getTime();
+  const alertBaseTime = alert ? new Date(alert.timestamp).getTime() : Date.now();
 
-  const timeline = [
+  const timeline = alert ? [
     { time: formatStableTime(alertBaseTime), action: "Alert triggered", details: "Anomaly detected on machine" },
     { time: formatStableTime(alertBaseTime + 60 * 1000), action: "Status: Pending", details: "Waiting for assignment" },
     { time: formatStableTime(alertBaseTime + 2 * 60 * 1000), action: "Status: Assigned", details: `Assigned to ${assignee || "unassigned"}` },
-  ];
+  ] : [];
 
   if (!alert) {
     return (
