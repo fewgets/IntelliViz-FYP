@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>IoT StreamGuard — Real-Time Industrial Monitoring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --white:#ffffff;
+  --off-white:#f0f6ff;
+  --blue-50:#e8f2ff;
+  --blue-100:#bdd7ff;
+  --blue-300:#4da6ff;
+  --blue-400:#2691f7;
+  --blue-500:#0e7af4;
+  --blue-600:#0962d4;
+  --blue-700:#0751b0;
+  --blue-900:#041e5c;
+  --cyan:#17d4f5;
+  --text-dark:#07132a;
+  --text-mid:#1e3a5f;
+  --text-muted:#5e7a99;
+  --border:rgba(14,122,244,0.10);
+  --border-h:rgba(14,122,244,0.30);
+  --shadow-sm:0 2px 12px rgba(14,122,244,0.08);
+  --shadow-md:0 8px 36px rgba(14,122,244,0.14);
+  --shadow-lg:0 20px 64px rgba(14,122,244,0.18);
+  --fd:'Space Grotesk',sans-serif;
+  --fb:'Plus Jakarta Sans',sans-serif;
+  --fm:'JetBrains Mono',monospace;
+  --r:16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--white);color:var(--text-dark);font-family:var(--fb);overflow-x:hidden;line-height:1.6}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#f0f6ff}::-webkit-scrollbar-thumb{background:var(--blue-300);border-radius:3px}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 5%;background:rgba(255,255,255,0.94);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.logo{display:flex;align-items:center;gap:.6rem}
+.logo-icon{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--blue-500),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:1rem}
+.logo-text{font-family:var(--fd);font-size:1.15rem;font-weight:700;color:var(--text-dark)}
+.logo-text span{color:var(--blue-500)}
+.nav-links{display:flex;gap:2.2rem;list-style:none}
+.nav-links a{color:var(--text-muted);text-decoration:none;font-size:.875rem;font-weight:500;transition:.25s}
+.nav-links a:hover{color:var(--blue-500)}
+.nav-cta{background:linear-gradient(135deg,var(--blue-500),var(--blue-600));color:#fff;padding:.5rem 1.4rem;font-family:var(--fb);font-size:.875rem;font-weight:600;border:none;border-radius:100px;cursor:pointer;transition:.3s;box-shadow:0 4px 16px rgba(14,122,244,.25)}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(14,122,244,.35)}
+
+/* HERO */
+#hero{position:relative;height:100vh;min-height:640px;display:flex;align-items:center;overflow:hidden}
+/* Background image layer */
+#hero-bg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:0}
+#hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.06;mix-blend-mode:luminosity;z-index:1}
+/* Dark overlay — balanced so bg image shows as watermark */
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(4,30,92,0.78) 0%,rgba(7,81,176,0.65) 55%,rgba(14,122,244,0.45) 100%);z-index:2}
+.hero-content{position:relative;z-index:3;padding:0 5%;max-width:780px;animation:fadeUp .9s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.65)}}
+h1.hero-title{font-family:var(--fd);font-size:clamp(2.4rem,5vw,4.2rem);font-weight:700;color:#fff;line-height:1.06;letter-spacing:-1.5px;margin-bottom:1.3rem}
+h1.hero-title .accent{background:linear-gradient(90deg,var(--cyan),#80d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:1.05rem;color:rgba(255,255,255,.70);margin-bottom:2.8rem;font-weight:400;max-width:520px;line-height:1.78}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap}
+.btn-solid{background:#fff;color:var(--blue-600);padding:.88rem 2.2rem;font-family:var(--fb);font-size:.9rem;font-weight:700;border:none;border-radius:100px;cursor:pointer;transition:.3s;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.btn-solid:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.btn-outline{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.35);padding:.88rem 2.2rem;font-family:var(--fb);font-size:.9rem;font-weight:500;border-radius:100px;cursor:pointer;transition:.3s}
+.btn-outline:hover{border-color:rgba(255,255,255,.75);background:rgba(255,255,255,.08);transform:translateY(-2px)}
+
+
+/* SHARED */
+section{padding:6rem 5%;position:relative}
+.eyebrow{font-family:var(--fm);font-size:.65rem;color:var(--blue-500);letter-spacing:3px;text-transform:uppercase;margin-bottom:.6rem;font-weight:500}
+.sec-h{font-family:var(--fd);font-size:clamp(1.8rem,3vw,2.7rem);font-weight:700;color:var(--text-dark);letter-spacing:-.5px;line-height:1.12;margin-bottom:.9rem}
+.sec-sub{color:var(--text-muted);font-size:.975rem;max-width:560px;font-weight:400;line-height:1.75}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent)}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--r);transition:.32s;box-shadow:var(--shadow-sm)}
+.card:hover{border-color:var(--border-h);box-shadow:var(--shadow-md);transform:translateY(-4px)}
+
+/* OVERVIEW */
+#overview{background:var(--off-white)}
+.ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;margin-top:3rem}
+.ov-prose p{color:var(--text-mid);font-size:.975rem;line-height:1.82;margin-bottom:1.1rem}
+.ov-prose p strong{color:var(--blue-600);font-weight:600}
+.hcards{display:flex;flex-direction:column;gap:1rem}
+.hcard{padding:1.35rem 1.55rem;display:flex;gap:1.2rem;align-items:flex-start}
+.hcard-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:linear-gradient(135deg,var(--blue-50),#d6eeff)}
+.hcard-icon svg{width:24px;height:24px;stroke:currentColor}
+.hcard-icon svg{width:24px;height:24px}
+.hcard h4{font-family:var(--fd);font-size:.875rem;font-weight:700;color:var(--text-dark);margin-bottom:.22rem}
+.hcard p{font-size:.82rem;color:var(--text-muted);line-height:1.6}
+
+/* MACHINES */
+#machines{background:#fff}
+.machines-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.2rem;margin-top:3rem}
+.machine-card{padding:1.6rem;border-radius:var(--r);border:1px solid var(--border);transition:.3s;cursor:default;background:#fff;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.machine-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue-400),var(--cyan));transform:scaleX(0);transform-origin:left;transition:.35s}
+.machine-card:hover::before{transform:scaleX(1)}
+.machine-card:hover{border-color:var(--border-h);box-shadow:var(--shadow-md);transform:translateY(-3px)}
+.mc-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--blue-50),#ddeeff);display:flex;align-items:center;justify-content:center;margin-bottom:1rem;border:1px solid var(--blue-100)}
+.mc-icon svg{width:28px;height:28px}
+.mc-name{font-family:var(--fd);font-size:.95rem;font-weight:700;color:var(--text-dark);margin-bottom:.2rem}
+.mc-desc{font-size:.78rem;color:var(--text-muted);margin-bottom:1rem}
+.mc-status{display:inline-flex;align-items:center;gap:.35rem;font-size:.68rem;font-family:var(--fm);padding:.28rem .75rem;border-radius:100px;font-weight:500}
+.mc-status.healthy{background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.2)}
+.mc-status.warning{background:rgba(251,191,36,.1);color:#ca8a04;border:1px solid rgba(251,191,36,.2)}
+.mc-status.critical{background:rgba(239,68,68,.1);color:#dc2626;border:1px solid rgba(239,68,68,.2)}
+.mc-dot{width:5px;height:5px;border-radius:50%;background:currentColor;animation:pulse 2s ease infinite}
+
+/* HOW IT WORKS */
+#howitworks{background:var(--off-white)}
+.pipeline{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:3.5rem;position:relative}
+.pipeline::before{content:'';position:absolute;top:52px;left:12.5%;right:12.5%;height:2px;background:linear-gradient(90deg,var(--blue-100),var(--blue-400),var(--blue-100));z-index:0}
+.pstep{text-align:center;padding:0 .8rem;position:relative;z-index:1}
+.pstep-num{width:54px;height:54px;border-radius:50%;border:2px solid var(--blue-300);background:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:1.05rem;font-weight:700;color:var(--blue-500);margin:0 auto 1.2rem;box-shadow:0 0 0 7px var(--blue-50);transition:.3s}
+.pstep:hover .pstep-num{background:linear-gradient(135deg,var(--blue-500),var(--blue-600));color:#fff;border-color:var(--blue-500);box-shadow:0 0 0 7px rgba(14,122,244,.1)}
+.pstep-icon{display:flex;align-items:center;justify-content:center;margin-bottom:.5rem;width:32px;height:auto}
+.pstep-icon svg{width:28px;height:28px}
+.pstep h4{font-family:var(--fd);font-size:.875rem;font-weight:700;color:var(--text-dark);margin-bottom:.4rem}
+.pstep p{font-size:.78rem;color:var(--text-muted);line-height:1.6}
+
+/* FEATURES */
+#features{background:#fff}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.4rem;margin-top:3rem}
+.feat-card{padding:2rem;cursor:default;position:relative;overflow:hidden}
+.feat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue-400),var(--cyan));transform:scaleX(0);transform-origin:left;transition:.35s}
+.feat-card:hover::after{transform:scaleX(1)}
+.feat-icon{width:50px;height:50px;border-radius:14px;background:var(--blue-50);display:flex;align-items:center;justify-content:center;margin-bottom:1.2rem;border:1px solid var(--blue-100);transition:.3s}
+.feat-icon svg{width:28px;height:28px}
+.feat-card:hover .feat-icon{background:linear-gradient(135deg,var(--blue-500),var(--blue-600));border-color:var(--blue-500)}
+.feat-card h3{font-family:var(--fd);font-size:.975rem;font-weight:700;color:var(--text-dark);margin-bottom:.5rem}
+.feat-card p{font-size:.855rem;color:var(--text-muted);line-height:1.68}
+.feat-chip{display:inline-block;margin-top:1rem;background:var(--blue-50);color:var(--blue-600);font-family:var(--fm);font-size:.6rem;padding:.2rem .68rem;border-radius:100px;letter-spacing:1px;border:1px solid var(--blue-100)}
+
+/* SYSTEM STATUS */
+#systemstatus{background:var(--off-white);text-align:center}
+.status-wrap{margin-top:3rem;border-radius:20px;overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow-lg);text-align:left}
+.status-bar{background:#fff;padding:.65rem 1.4rem;display:flex;align-items:center;gap:.45rem;border-bottom:1px solid var(--border)}
+.dot{width:10px;height:10px;border-radius:50%}.dot-r{background:#fc5c65}.dot-y{background:#fed330}.dot-g{background:#26de81}
+.status-bar-url{font-family:var(--fm);font-size:.7rem;color:var(--text-muted);margin-left:.8rem}
+.status-inner{background:linear-gradient(135deg,#041e5c 0%,#072268 100%);padding:2rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+.sp{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:1.3rem;text-align:left}
+.sp-title{font-family:var(--fm);font-size:.62rem;color:rgba(255,255,255,.40);letter-spacing:2px;text-transform:uppercase;margin-bottom:.8rem}
+.sp-num{font-family:var(--fd);font-size:2rem;font-weight:700;color:#fff}
+.sp-num.ok{color:#4ade80}.sp-num.warn{color:#facc15}.sp-num.danger{color:#f87171}
+.sp-sub{font-size:.7rem;color:rgba(255,255,255,.36);margin-top:.22rem}
+.bar-list{margin-top:1rem;display:flex;flex-direction:column;gap:6px}
+.bar-row{display:flex;align-items:center;gap:.5rem}
+.bar-lbl{font-size:.6rem;color:rgba(255,255,255,.36);width:40px;flex-shrink:0;font-family:var(--fm)}
+.bar-bg{flex:1;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#2691f7,#17d4f5)}
+.bar-fill.r{background:linear-gradient(90deg,#ef4444,#fbbf24)}.bar-fill.g{background:linear-gradient(90deg,#10b981,#4ade80)}
+.al{font-family:var(--fm);font-size:.65rem;padding:.38rem .65rem;border-radius:7px;margin-bottom:.35rem;display:flex;align-items:center;gap:.5rem}
+.al.c{background:rgba(248,113,113,.12);color:#fca5a5;border:1px solid rgba(248,113,113,.22)}
+.al.w{background:rgba(251,191,36,.1);color:#fde68a;border:1px solid rgba(251,191,36,.22)}
+.al.o{background:rgba(74,222,128,.1);color:#86efac;border:1px solid rgba(74,222,128,.22)}
+.al-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.status-footer{background:#fff;padding:1.4rem 1.8rem;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);flex-wrap:wrap;gap:1rem}
+.status-footer p{font-size:.9rem;color:var(--text-mid);font-weight:500}
+.status-footer p strong{color:var(--blue-500)}
+.btn-open{background:linear-gradient(135deg,var(--blue-500),var(--blue-600));color:#fff;padding:.65rem 1.8rem;font-family:var(--fb);font-size:.875rem;font-weight:600;border:none;border-radius:100px;cursor:pointer;transition:.3s;display:inline-flex;align-items:center;gap:.5rem;box-shadow:0 4px 16px rgba(14,122,244,.3)}
+.btn-open:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(14,122,244,.4)}
+.btn-open svg{transition:.3s}.btn-open:hover svg{transform:translateX(3px)}
+
+/* VIDEOS */
+#videos{background:#fff}
+.vid-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.2rem;margin-top:3rem}
+.vid-card{border-radius:var(--r);overflow:hidden;border:1px solid var(--border);transition:.35s;background:#000;box-shadow:var(--shadow-sm)}
+.vid-card:hover{border-color:var(--blue-300);box-shadow:var(--shadow-lg);transform:translateY(-4px) scale(1.01)}
+.vid-card video{width:100%;display:block;aspect-ratio:16/9;object-fit:cover}
+.vid-bar{background:#fff;padding:.7rem 1rem;display:flex;align-items:center;justify-content:space-between}
+.vid-title{font-size:.8rem;font-weight:700;color:var(--text-dark);font-family:var(--fd)}
+.live-badge{background:var(--blue-50);color:var(--blue-500);font-family:var(--fm);font-size:.6rem;padding:.18rem .55rem;border-radius:100px;border:1px solid var(--blue-100);display:flex;align-items:center;gap:.3rem}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--blue-500);animation:pulse 1.8s ease infinite}
+
+/* FLASHCARDS */
+#flashcards{background:var(--off-white)}
+.fc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:2rem;margin-top:3rem}
+.flip-card{perspective:1000px;height:260px;cursor:pointer}
+.flip-inner{width:100%;height:100%;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.4,0,.2,1);position:relative}
+.flip-card:hover .flip-inner{transform:rotateY(180deg)}
+.flip-front,.flip-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:var(--r);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.8rem;text-align:center}
+.flip-front{background:#fff;border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+.flip-back{background:linear-gradient(135deg,var(--blue-600),var(--blue-700));border:none;transform:rotateY(180deg)}
+.flip-icon{display:flex;align-items:center;justify-content:center;margin-bottom:1rem;width:56px;height:56px;background:linear-gradient(135deg,var(--blue-50),#ddeeff);border-radius:12px}
+.flip-icon svg{width:32px;height:32px}
+.flip-front h4{font-family:var(--fd);font-size:.95rem;font-weight:700;color:var(--text-dark)}
+.flip-hint{font-size:.68rem;color:var(--text-muted);margin-top:.4rem;font-family:var(--fm)}
+.flip-back h4{font-family:var(--fd);font-size:.95rem;font-weight:700;color:#fff;margin-bottom:.7rem}
+.flip-back p{font-size:.82rem;color:rgba(255,255,255,.82);line-height:1.6}
+
+/* BENEFITS */
+#benefits{background:#fff}
+.ben-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.4rem;margin-top:3rem}
+.ben-card{padding:2rem;text-align:center}
+.ben-icon{display:flex;align-items:center;justify-content:center;margin-bottom:.8rem}
+.ben-icon svg{width:32px;height:32px}
+.ben-num{font-family:var(--fd);font-size:2.5rem;font-weight:800;color:var(--blue-500);letter-spacing:-1px}
+.ben-label{font-family:var(--fd);font-size:.84rem;font-weight:700;color:var(--text-dark);margin-top:.35rem}
+.ben-desc{font-size:.8rem;color:var(--text-muted);margin-top:.4rem;line-height:1.6}
+
+/* CTA */
+#cta{background:linear-gradient(135deg,var(--blue-600),var(--blue-700));text-align:center;padding:7rem 5%;overflow:hidden;position:relative}
+#cta::before{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:rgba(23,212,245,.06);top:-200px;right:-150px;pointer-events:none}
+#cta::after{content:'';position:absolute;width:350px;height:350px;border-radius:50%;background:rgba(255,255,255,.04);bottom:-150px;left:-100px;pointer-events:none}
+.cta-h{font-family:var(--fd);font-size:clamp(2rem,4vw,3rem);font-weight:700;color:#fff;letter-spacing:-1px;margin-bottom:1rem;position:relative;z-index:1}
+.cta-sub{color:rgba(255,255,255,.70);font-size:1rem;max-width:480px;margin:0 auto 2.5rem;line-height:1.75;position:relative;z-index:1}
+.cta-btns{display:flex;gap:1.2rem;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+.btn-w{background:#fff;color:var(--blue-600);padding:.9rem 2.5rem;font-family:var(--fb);font-size:.9rem;font-weight:700;border:none;border-radius:100px;cursor:pointer;transition:.3s;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+.btn-w:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.22)}
+.btn-ow{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.35);padding:.9rem 2.5rem;font-family:var(--fb);font-size:.9rem;font-weight:500;border-radius:100px;cursor:pointer;transition:.3s}
+.btn-ow:hover{border-color:#fff;background:rgba(255,255,255,.1);transform:translateY(-2px)}
+
+/* FOOTER */
+footer{background:var(--blue-900);padding:2.5rem 5%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.footer-logo{font-family:var(--fd);font-size:1.05rem;color:#fff;font-weight:700}
+.footer-logo span{color:var(--cyan)}
+.footer-copy{font-size:.74rem;color:rgba(255,255,255,.35);font-family:var(--fm)}
+.footer-links{display:flex;gap:1.8rem}
+.footer-links a{font-size:.8rem;color:rgba(255,255,255,.45);text-decoration:none;transition:.25s;font-weight:500}
+.footer-links a:hover{color:#fff}
+
+/* ANIMATIONS */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s ease,transform .65s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}
+
+/* RESPONSIVE */
+@media(max-width:900px){.ov-grid,.pipeline{grid-template-columns:1fr}.pipeline::before{display:none}.status-inner{grid-template-columns:1fr 1fr}.nav-links{display:none}}
+@media(max-width:600px){section{padding:4rem 4%}.status-inner{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <div class="logo-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.17 17.933a11 11 0 0 1 16-4.07M9 11a3 3 0 0 1 6 0"></path></svg></div>
+    <div class="logo-text">IoT <span>StreamGuard</span></div>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#machines">Machines</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#systemstatus">Status</a></li>
+    <li><a href="#videos">Showcase</a></li>
+  </ul>
+  <button class="nav-cta" onclick="navigateToDashboard()">Open Dashboard</button>
+</nav>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<section id="hero">
+  <!-- Layer 0: Background image (bottom) -->
+  <img id="hero-bg-img" src="back_img2.jpg" alt="hero background"/>
+
+  <!-- Layer 1: Optional video (very faint) -->
+  <video id="hero-video" autoplay muted loop playsinline>
+    <source src="Futuristic_AI_Dashboard_Animation.mp4" type="video/mp4"/>
+  </video>
+
+  <!-- Layer 2: Dark gradient overlay -->
+  <div class="hero-overlay"></div>
+
+  <!-- Layer 3: Hero text content -->
+  <div class="hero-content">
+    <h1 class="hero-title">Intelligent Protection<br/>for <span class="accent">Smart Industries</span><br/>of Tomorrow</h1>
+    <p class="hero-sub">IoT StreamGuard monitors, predicts, and secures your industrial devices in real time — from CNC machines to robotic arms, all in one unified platform.</p>
+    <div class="hero-btns">
+      <button class="btn-solid" onclick="navigateToDashboard()">Open Dashboard</button>
+      <button class="btn-outline" onclick="navigateToDashboard()">View Live Demo</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ OVERVIEW ═══════════════════════ -->
+<section id="overview">
+  <div class="eyebrow">// Overview</div>
+  <h2 class="sec-h reveal">What Is IoT StreamGuard?</h2>
+  <div class="ov-grid">
+    <div class="ov-prose reveal">
+      <p>IoT StreamGuard is a <strong>real-time monitoring platform</strong> purpose-built for industrial environments. It continuously streams sensor data from your machines — CNC mills, pumps, compressors, and robotic arms — and surfaces anomalies before they cause costly failures.</p>
+      <p>Powered by <strong>AI-driven anomaly detection</strong>, StreamGuard integrates directly with your existing IoT infrastructure. Predictive maintenance, energy intelligence, and cybersecurity threat detection — all unified under one intelligent dashboard.</p>
+      <p>Trusted by industrial operators across manufacturing, energy, and critical infrastructure worldwide.</p>
+    </div>
+    <div class="hcards">
+      <div class="hcard card reveal d1"><div class="hcard-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="2"><circle cx="10" cy="9" r="1"></circle><circle cx="16" cy="9" r="1"></circle><circle cx="13" cy="16" r="1"></circle></svg></div><div><h4>AI-Powered Monitoring</h4><p>Deep learning models trained on millions of sensor readings detect subtle failure patterns invisible to humans.</p></div></div>
+      <div class="hcard card reveal d2"><div class="hcard-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg></div><div><h4>Sub-Second Alerts</h4><p>Critical events escalated instantly via dashboard, SMS, and webhooks. Zero delay between anomaly and action.</p></div></div>
+      <div class="hcard card reveal d3"><div class="hcard-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M8 17V13M12 17V9M16 17V5"></path></svg></div><div><h4>Data-Driven Decisions</h4><p>Full historical analytics, trend forecasting, and exportable reports for management and compliance teams.</p></div></div>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ═══════════════════════ ACTIVE MACHINES ═══════════════════════ -->
+<section id="machines">
+  <div class="eyebrow">// Active Machines</div>
+  <h2 class="sec-h reveal">4 Machine Types Online</h2>
+  <p class="sec-sub reveal">StreamGuard monitors every unit in real time, providing live health scores, RUL predictions, and efficiency metrics.</p>
+  <div class="machines-grid">
+    <div class="machine-card reveal">
+      <div class="mc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div>
+      <div class="mc-name">CNC Machine</div>
+      <div class="mc-desc">Precision cutting and shaping • ID: cnc-001</div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:.6rem;font-family:var(--fm)">Risk: 12% &nbsp;|&nbsp; RUL: 1240h &nbsp;|&nbsp; Eff: 94%</div>
+      <span class="mc-status healthy"><span class="mc-dot"></span>Healthy</span>
+    </div>
+    <div class="machine-card reveal d1">
+      <div class="mc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg></div>
+      <div class="mc-name">Pump</div>
+      <div class="mc-desc">Fluid movement control • ID: pump-001</div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:.6rem;font-family:var(--fm)">Risk: 48% &nbsp;|&nbsp; RUL: 320h &nbsp;|&nbsp; Eff: 78%</div>
+      <span class="mc-status warning"><span class="mc-dot"></span>Warning</span>
+    </div>
+    <div class="machine-card reveal d2">
+      <div class="mc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="2"><circle cx="12" cy="12" r="8"></circle><path d="M12 4v16M4 12h16"></path></svg></div>
+      <div class="mc-name">Compressor</div>
+      <div class="mc-desc">Air pressurization system • ID: compressor-001</div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:.6rem;font-family:var(--fm)">Risk: 18% &nbsp;|&nbsp; RUL: 980h &nbsp;|&nbsp; Eff: 91%</div>
+      <span class="mc-status healthy"><span class="mc-dot"></span>Healthy</span>
+    </div>
+    <div class="machine-card reveal d3">
+      <div class="mc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="2"><path d="M9 11a3 3 0 1 0 6 0c0-1.657-.895-3-2-3s-2 1.343-2 3"></path></svg></div>
+      <div class="mc-name">Robotic Arm</div>
+      <div class="mc-desc">Automated assembly • ID: robotic-arm-001</div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:.6rem;font-family:var(--fm)">Risk: 82% &nbsp;|&nbsp; RUL: 48h &nbsp;|&nbsp; Eff: 62%</div>
+      <span class="mc-status critical"><span class="mc-dot"></span>Critical</span>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ═══════════════════════ HOW IT WORKS ═══════════════════════ -->
+<section id="howitworks">
+  <div class="eyebrow">// Pipeline</div>
+  <h2 class="sec-h reveal">How It Works</h2>
+  <p class="sec-sub reveal">Four stages transform raw sensor data into actionable intelligence in real time.</p>
+  <div class="pipeline">
+    <div class="pstep reveal"><div class="pstep-num">01</div><span class="pstep-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.17 17.933a11 11 0 0 1 16-4.07M9 11a3 3 0 0 1 6 0"></path></svg></span><h4>Data Collection</h4><p>IoT sensors, SCADA logs, PLCs, and energy meters feed live streams continuously.</p></div>
+    <div class="pstep reveal d1"><div class="pstep-num">02</div><span class="pstep-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span><h4>Data Processing</h4><p>Edge preprocessing, noise filtering, normalization, and feature extraction via ML pipelines.</p></div>
+    <div class="pstep reveal d2"><div class="pstep-num">03</div><span class="pstep-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg></span><h4>Anomaly Detection</h4><p>LSTM autoencoders identify deviation patterns across all machine systems instantly.</p></div>
+    <div class="pstep reveal d3"><div class="pstep-num">04</div><span class="pstep-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></span><h4>Alerts & Insights</h4><p>Instant notifications, root cause analysis, and dashboard insights for rapid response.</p></div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ═══════════════════════ FEATURES ═══════════════════════ -->
+<section id="features">
+  <div class="eyebrow">// Capabilities</div>
+  <h2 class="sec-h reveal">Platform Features</h2>
+  <p class="sec-sub reveal">Four intelligent modules working in concert to protect and optimize your operations.</p>
+  <div class="feat-grid">
+    <div class="feat-card card reveal"><div class="feat-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.99 6.99a6 6 0 1 1-8.48-8.48l6.99-6.99a1 1 0 0 0 0-1.41A6 6 0 0 1 14.7 6.3z"></path></svg></div><h3>Predictive Maintenance</h3><p>Detect early signs of equipment degradation weeks before failure. Reduce unplanned downtime by up to 40% with AI-driven health scoring.</p><span class="feat-chip">ML / FORECASTING</span></div>
+    <div class="feat-card card reveal d1"><div class="feat-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg></div><h3>Energy Optimization</h3><p>Identify energy consumption anomalies and wasteful load patterns. Achieve measurable cost reductions across your facility.</p><span class="feat-chip">ANALYTICS / AI</span></div>
+    <div class="feat-card card reveal d2"><div class="feat-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><h3>Cyber Threat Detection</h3><p>Monitor OT/IT network traffic for intrusions and zero-day exploits targeting industrial control systems.</p><span class="feat-chip">SECURITY / IDS</span></div>
+    <div class="feat-card card reveal d3"><div class="feat-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div><h3>Real-Time Monitoring</h3><p>Unified live dashboard aggregating thousands of data points per second with custom KPI widgets and APR calendar tracking.</p><span class="feat-chip">LIVE / STREAM</span></div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ═══════════════════════ SYSTEM STATUS ═══════════════════════ -->
+<section id="systemstatus">
+  <div class="eyebrow">// System Status</div>
+  <h2 class="sec-h reveal" style="text-align:center">Live System Intelligence</h2>
+  <p class="sec-sub reveal" style="margin:0 auto 3rem;text-align:center">A preview of StreamGuard's live monitoring panel — 12 machines, real alerts, real data.</p>
+  <div class="status-wrap reveal">
+    <div class="status-bar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="status-bar-url">iot-streamguard.app / dashboard</span>
+    </div>
+    <div class="status-inner">
+      <div class="sp">
+        <div class="sp-title">System Uptime</div>
+        <div class="sp-num ok">99.7%</div>
+        <div class="sp-sub">Last 30 days — all machines</div>
+        <div class="bar-list">
+          <div class="bar-row"><span class="bar-lbl">CNC</span><div class="bar-bg"><div class="bar-fill g" style="width:98%"></div></div></div>
+          <div class="bar-row"><span class="bar-lbl">Pump</span><div class="bar-bg"><div class="bar-fill" style="width:76%"></div></div></div>
+          <div class="bar-row"><span class="bar-lbl">Comp</span><div class="bar-bg"><div class="bar-fill g" style="width:91%"></div></div></div>
+          <div class="bar-row"><span class="bar-lbl">Robot</span><div class="bar-bg"><div class="bar-fill r" style="width:42%"></div></div></div>
+        </div>
+      </div>
+      <div class="sp">
+        <div class="sp-title">Live Alerts</div>
+        <div class="al c"><span class="al-dot"></span>Robotic Arm — bearing failure risk</div>
+        <div class="al w"><span class="al-dot"></span>Pump energy +32% above baseline</div>
+        <div class="al c"><span class="al-dot"></span>Unauthorized OT network access</div>
+        <div class="al o"><span class="al-dot"></span>Compressor C-001 — nominal</div>
+        <div class="al w"><span class="al-dot"></span>CNC M-07 temperature rising</div>
+      </div>
+      <div class="sp">
+        <div class="sp-title">System Status</div>
+        <div class="sp-num ok">5</div>
+        <div class="sp-sub">Healthy machines</div>
+        <div class="bar-list" style="margin-top:1rem">
+          <div class="bar-row"><span class="bar-lbl">Warn</span><div class="bar-bg"><div class="bar-fill" style="width:33%"></div></div></div>
+          <div class="bar-row"><span class="bar-lbl">Crit</span><div class="bar-bg"><div class="bar-fill r" style="width:25%"></div></div></div>
+          <div class="bar-row"><span class="bar-lbl">OK</span><div class="bar-bg"><div class="bar-fill g" style="width:42%"></div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="status-footer">
+      <p>See the <strong>full analytics dashboard</strong> — live charts, anomaly trends, and machine health scores.</p>
+      <button class="btn-open" onclick="navigateToDashboard()">
+        Open Full Dashboard
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ═══════════════════════ VIDEOS ═══════════════════════ -->
+<section id="videos">
+  <div class="eyebrow">// Showcase</div>
+  <h2 class="sec-h reveal">Platform in Action</h2>
+  <p class="sec-sub reveal">See IoT StreamGuard operating across smart factories, control rooms, and cyber environments.</p>
+  <div class="vid-grid">
+    <div class="vid-card reveal"><video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover">
+        <source src="Smart_Factory_Predictive_Maintenance.mp4" type="video/mp4"/>
+        Your browser does not support the video tag.
+      </video>
+      <div class="vid-bar"><span class="vid-title">Smart Factory Automation</span><span class="live-badge"><span class="live-dot"></span>LIVE</span></div>
+    </div>
+    <div class="vid-card reveal d1"><video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover">
+        <source src="Futuristic_AI_Dashboard_Animation.mp4" type="video/mp4"/>
+        Your browser does not support the video tag.
+      </video>
+      <div class="vid-bar"><span class="vid-title">AI Monitoring Dashboard</span><span class="live-badge"><span class="live-dot"></span>LIVE</span></div>
+    </div>
+    <div class="vid-card reveal d2"><video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover">
+        <source src="Smart_Factory_Predictive_Maintenance (1).mp4" type="video/mp4"/>
+        Your browser does not support the video tag.
+      </video>
+      <div class="vid-bar"><span class="vid-title">Advanced Analytics Engine</span><span class="live-badge"><span class="live-dot"></span>LIVE</span></div>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ═══════════════════════ FLASHCARDS ═══════════════════════ -->
+<section id="flashcards">
+  <div class="eyebrow">// Modules</div>
+  <h2 class="sec-h reveal">Explore Core Modules</h2>
+  <p class="sec-sub reveal">Hover each card to discover how each module protects and powers your operations.</p>
+  <div class="fc-grid">
+    <div class="flip-card reveal"><div class="flip-inner"><div class="flip-front"><svg class="flip-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"></path><path d="M12 6v6l4 2"></path></svg><h4>AI Brain</h4></div><div class="flip-back"><h4>Deep Learning Core</h4><p>LSTM autoencoders with 97%+ anomaly detection accuracy across all operational domains.</p></div></div></div>
+    <div class="flip-card reveal d1"><div class="flip-inner"><div class="flip-front"><svg class="flip-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18"></rect><path d="M7 2v20M17 2v20M2 7h20M2 12h20M2 17h20"></path></svg><h4>Factory Systems</h4></div><div class="flip-back"><h4>Predictive Maintenance</h4><p>Vibration, thermal, and acoustic signatures analyzed in parallel. Failures predicted weeks in advance.</p></div></div></div>
+    <div class="flip-card reveal d2"><div class="flip-inner"><div class="flip-front"><svg class="flip-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg><h4>Energy Graph</h4></div><div class="flip-back"><h4>Energy Intelligence</h4><p>Real-time energy flow mapping across all facility zones. Reduce energy spend 15–30% within the first quarter.</p></div></div></div>
+    <div class="flip-card reveal d3"><div class="flip-inner"><div class="flip-front"><svg class="flip-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M12 12c-.5 0-1-.4-1-1s.4-1 1-1 1 .4 1 1-.4 1-1 1z"></path></svg><h4>Cyber Network</h4></div><div class="flip-back"><h4>OT/ICS Security</h4><p>Passive monitoring with zero operational impact. Detects exploits in Modbus, DNP3, PROFINET, and IEC 61850.</p></div></div></div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ═══════════════════════ BENEFITS ═══════════════════════ -->
+<section id="benefits">
+  <div class="eyebrow">// Results</div>
+  <h2 class="sec-h reveal">Proven Impact</h2>
+  <p class="sec-sub reveal">Quantified outcomes from real industrial deployments worldwide.</p>
+  <div class="ben-grid">
+    <div class="ben-card card reveal"><div class="ben-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></div><div class="ben-num" data-target="40" data-suffix="%">0%</div><div class="ben-label">Downtime Reduced</div><p class="ben-desc">Average reduction in unplanned downtime within the first 6 months of deployment.</p></div>
+    <div class="ben-card card reveal d1"><div class="ben-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg></div><div class="ben-num" data-target="28" data-suffix="%">0%</div><div class="ben-label">Energy Cost Saved</div><p class="ben-desc">Measurable reduction through AI-driven load optimization and anomaly correction.</p></div>
+    <div class="ben-card card reveal d2"><div class="ben-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><div class="ben-num" data-target="95" data-suffix="%">0%</div><div class="ben-label">Threat Detection Rate</div><p class="ben-desc">Industrial cyber threats identified and neutralized before operational impact.</p></div>
+    <div class="ben-card card reveal d3"><div class="ben-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0e7af4" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></div><div class="ben-num" data-target="3.2" data-suffix="x">0x</div><div class="ben-label">Operational ROI</div><p class="ben-desc">Average return on investment within the first year of StreamGuard deployment.</p></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ CTA ═══════════════════════ -->
+<section id="cta">
+  <h2 class="cta-h reveal">Ready to Protect<br/>Your Industrial Assets?</h2>
+  <p class="cta-sub reveal">Join industrial operators already safeguarding their machines and optimizing operations with IoT StreamGuard.</p>
+  <div class="cta-btns reveal">
+    <button class="btn-w" onclick="navigateToDashboard()">Start Free Trial</button>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">IoT <span>StreamGuard</span></div>
+  <div class="footer-copy">© 2025 IoT StreamGuard — Real-Time Industrial Intelligence Platform</div>
+  <div class="footer-links"><a href="#">Privacy</a><a href="#">Docs</a><a href="#">Contact</a></div>
+</footer>
+
+<script>
+// Scroll reveal
+const obs = new IntersectionObserver(es => {
+  es.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// Counter animation
+function animCount(el, target, suffix, dur=1800){
+  const isF = String(target).includes('.');
+  const s = performance.now();
+  function step(now){
+    const t = Math.min((now-s)/dur,1);
+    const e2 = t<.5 ? 2*t*t : (4-2*t)*t-1;
+    const v = isF ? (target*e2).toFixed(1) : Math.round(target*e2);
+    el.textContent = v + suffix;
+    if(t<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+const cObs = new IntersectionObserver(es => {
+  es.forEach(e => {
+    if(e.isIntersecting && !e.target.dataset.done){
+      e.target.dataset.done='1';
+      animCount(e.target, parseFloat(e.target.dataset.target), e.target.dataset.suffix||'');
+    }
+  });
+},{threshold:.5});
+document.querySelectorAll('[data-target]').forEach(el => cObs.observe(el));
+
+// Parallax hero video
+window.addEventListener('scroll', () => {
+  const v = document.getElementById('hero-video');
+  if(v) v.style.transform = `translateY(${window.scrollY*.2}px)`;
+},{passive:true});
+
+// Navigate to dashboard
+function navigateToDashboard(){
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(() => { window.location.href='/dashboard'; }, 300);
+}
+</script>
+</body>
+</html>
