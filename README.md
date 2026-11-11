@@ -380,6 +380,12 @@ analytics service, trained models and datasets) is kept private as part of our F
 
 ---
 
+## 📜 License
+
+© 2026 Afnan Shoukat, Usama Shahid and Dur-e-Adan Noor (NUML Islamabad). All rights reserved. This repository is a project showcase; the source code is private.
+
+---
+
 ## 🤝 Let's Work Together
 
 <div align="center">
