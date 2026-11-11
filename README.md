@@ -1,28 +1,27 @@
+<!-- IntelliViz · README by Usama Shahid (fewgets) -->
 <div align="center">
 
-# IntelliViz
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0D1117,55:0F3D3E,100:36FFC7&height=230&section=header&text=IntelliViz&fontSize=60&fontColor=FFFFFF&fontAlignY=36&desc=AI%20industrial%20monitoring%20and%20predictive%20maintenance%20%C2%B7%20FYP&descSize=17&descAlignY=58&animation=fadeIn" width="100%" alt="IntelliViz"/>
 
-### AI-Powered Industrial Monitoring & Predictive Maintenance Platform
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&duration=3000&pause=700&color=36FFC7&center=true&vCenter=true&width=720&height=60&lines=See+Every+Machine;Predict+Every+Failure;Ask+Anything+About+Your+Plant" alt="Typing SVG"/>
 
-*See every machine. Predict every failure. Ask anything about your plant.*
+<p>
+  <img src="https://img.shields.io/badge/Next.js%2016-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js 16"/>
+  <img src="https://img.shields.io/badge/React%2019-20232A?style=for-the-badge&logo=react&logoColor=white" alt="React 19"/>
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"/>
+  <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch"/>
+  <img src="https://img.shields.io/badge/LangGraph-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white" alt="LangGraph"/>
+  <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase"/>
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"/>
+</p>
 
-<br/>
-
-![Next.js](https://img.shields.io/badge/Next.js_16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
-![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
-![LangGraph](https://img.shields.io/badge/LangGraph-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-
-**Final Year Project · BS Artificial Intelligence · Department of Computer Science, NUML Islamabad**
+<p>
+  <a href="#-overview"><b>Overview</b></a> · <a href="#%EF%B8%8F-system-architecture"><b>Architecture</b></a> · <a href="#-machine-learning-predictive-maintenance-model"><b>ML Model</b></a> · <a href="#-orion-ai-multi-agent-analytics--copilot"><b>Orion AI</b></a> · <a href="#-team"><b>Team</b></a>
+</p>
 
 </div>
 
 ---
-
 ## 📌 Table of Contents
 
 - [Overview](#-overview)
@@ -38,6 +37,7 @@
 - [Project Status & Roadmap](#-project-status--roadmap)
 - [Team](#-team)
 - [Source Code](#-source-code)
+- [Let's Work Together](#-lets-work-together)
 
 ---
 
@@ -376,15 +376,35 @@ Department of Computer Science
 This repository is a **project showcase**. The full source code (frontend, backend API, prediction worker,
 analytics service, trained models and datasets) is kept private as part of our Final Year Project.
 
-For a demo, collaboration or access to the code, please contact:
+**Want a demo, collaboration or access to the code?** Get in touch below.
+
+---
+
+## 🤝 Let's Work Together
 
 <div align="center">
 
-[![GitHub](https://img.shields.io/badge/GitHub-fewgets-181717?style=for-the-badge&logo=github)](https://github.com/fewgets)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Usama_Shahid-0A66C2?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/-usamashahid/)
+**Have an idea, a freelance project, or want to collaborate on something in AI?**
+I'm always open to collaborations, freelance work and full-time opportunities.
+
+<a href="mailto:shaikhusama541@gmail.com?subject=Collaboration%20-%20IntelliViz">
+  <img src="https://img.shields.io/badge/Email-shaikhusama541%40gmail.com-36FFC7?style=for-the-badge&logo=gmail&logoColor=white&labelColor=0D1117" alt="Email"/>
+</a>
+<a href="https://www.linkedin.com/in/-usamashahid/">
+  <img src="https://img.shields.io/badge/LinkedIn-Usama%20Shahid-36FFC7?style=for-the-badge&logo=linkedin&logoColor=white&labelColor=0D1117" alt="LinkedIn"/>
+</a>
+<a href="https://github.com/fewgets">
+  <img src="https://img.shields.io/badge/GitHub-fewgets-36FFC7?style=for-the-badge&logo=github&logoColor=white&labelColor=0D1117" alt="GitHub"/>
+</a>
+
+<br/><br/>
+
+⭐ **If you like this project, please give it a star. It really helps!** ⭐
 
 <br/>
 
-*Built with ❤️ at NUML Islamabad*
+<h3>"AI reasons and explains. Code calculates and verifies."</h3>
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:36FFC7,55:0F3D3E,100:0D1117&height=150&section=footer&animation=twinkling" width="100%" alt="footer"/>
 
 </div>
